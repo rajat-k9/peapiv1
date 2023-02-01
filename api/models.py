@@ -8,6 +8,7 @@ class Record(models.Model):
     sku = models.CharField(max_length=100)
     qty = models.IntegerField(default=1)
     is_replacement = models.BooleanField(default=False)
+    remarks = models.TextField(default="")
     created_on = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
