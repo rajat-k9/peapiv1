@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.timezone import now
 
 class Record(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -9,6 +10,7 @@ class Record(models.Model):
     qty = models.IntegerField(default=1)
     is_replacement = models.BooleanField(default=False)
     remarks = models.TextField(default="",null=True,blank=True)
+    sale_date = models.DateTimeField(default=now)
     created_on = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

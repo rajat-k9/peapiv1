@@ -21,7 +21,8 @@ class RecordSerializer(serializers.ModelSerializer):
     created_on = serializers.ReadOnlyField()
     class Meta:
         model = Record
-        fields = ["user_id","user_name","product_name","amount","sku","qty","is_replacement","remarks","created_on"]
+        fields = ["user_id","user_name","product_name","amount","sku","qty",
+        "is_replacement","remarks","sale_date","created_on"]
 
     def get_user_name(self, obj):
        return obj.user_id.username
