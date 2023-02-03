@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from api.models import Customer,Record
+from api.models import Customer,Record,Stock
 from rest_framework import serializers
 
 # Serializers define the API representation.
@@ -26,3 +26,19 @@ class RecordSerializer(serializers.ModelSerializer):
 
     def get_user_name(self, obj):
        return obj.user_id.username
+
+    
+class StockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stock
+        fields = ["id","name","home","shop"]
+    
+    def create(self, validated_data):
+        return Stock.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.email = validated_data.get('name', instance.name)
+        instance.content = validated_data.get('home', instance.home)
+        instance.created = validated_data.get('shop', instance.shop)
+        instance.save()
+        return instance

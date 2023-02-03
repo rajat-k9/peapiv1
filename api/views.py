@@ -1,8 +1,8 @@
 from django.http import HttpResponse
-from api.models import Customer,Record
+from api.models import Customer,Record,Stock
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
-from .serializers import UserSerializer,CustomerSerializer,RecordSerializer
+from .serializers import UserSerializer,CustomerSerializer,RecordSerializer,StockSerializer
 from rest_framework import permissions
 
 def index(request):
@@ -23,3 +23,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
 class RecordViewSet(viewsets.ModelViewSet):
     queryset = Record.objects.all()
     serializer_class = RecordSerializer
+
+
+class StockViewSet(viewsets.ModelViewSet):
+    queryset = Stock.objects.all()
+    serializer_class = StockSerializer
+
+    

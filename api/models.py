@@ -24,4 +24,13 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Stock(models.Model):
+    name = models.CharField(max_length=100)
+    home = models.IntegerField(default=0)
+    shop = models.IntegerField(default=0)
+
+    def __str__(self) -> str:
+        return self.name
     
