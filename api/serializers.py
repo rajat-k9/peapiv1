@@ -37,8 +37,8 @@ class StockSerializer(serializers.ModelSerializer):
         return Stock.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.email = validated_data.get('name', instance.name)
-        instance.content = validated_data.get('home', instance.home)
-        instance.created = validated_data.get('shop', instance.shop)
+        instance.name = validated_data.get('name', instance.name)
+        instance.home = validated_data.get('home', instance.home)
+        instance.shop = validated_data.get('shop', instance.shop)
         instance.save()
         return instance
