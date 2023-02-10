@@ -14,7 +14,7 @@ class Record(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('-sale_date',)
+        ordering = ('-sale_date__hour','-sale_date__minute','-sale_date__second')
 
     def __str__(self):
         return self.product_name
