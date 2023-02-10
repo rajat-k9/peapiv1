@@ -13,6 +13,9 @@ class Record(models.Model):
     sale_date = models.DateTimeField(default=now)
     created_on = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ('-sale_date',)
+
     def __str__(self):
         return self.product_name
     
