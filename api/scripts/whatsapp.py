@@ -1,6 +1,6 @@
 from whatsapp_api_client_python import API as API
 from html2image import Html2Image
-from api.models import Stock
+# from api.models import Stock
 from datetime import date
 
 
@@ -12,14 +12,18 @@ GROUP_ID = '120363031328070036@g.us'
 greenAPI = API.GreenApi(ID_INSTANCE, API_TOKEN_INSTANCE)
 
 class Whatsapp():
-    def send_alert(self):
+    def send_alert(self, data:list):
         print("schduler created")
         html = "<table border='1'><tbody><tr><th>Name</th><th>Home</th><th>Shop</th></tr>"
         # Get stock data
-        stock_queryset = Stock.objects.all()
-        for obj in stock_queryset:
-            html = html + "<tr><td>"+obj.name+"</td><td>"+str(obj.home)+"</td><td>"+str(obj.shop)+"</td></tr>"
+        for item in data:
+            print(item)
+            html = html + "<tr><td>"+item["name"]+"</td><td>"+str(item["home"])+"</td><td>"+str(item["shop"])+"</td></tr>"
         html = html + "</tbody></table>"
+        # stock_queryset = Stock.objects.all()
+        # for obj in stock_queryset:
+        #     html = html + "<tr><td>"+obj.name+"</td><td>"+str(obj.home)+"</td><td>"+str(obj.shop)+"</td></tr>"
+        # html = html + "</tbody></table>"
         hti = Html2Image()
 
         css = 'body {background: white;}'
