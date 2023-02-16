@@ -12,5 +12,6 @@ router.register(r'stocks', views.StockViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('invokewhatsapp/', views.InvokeWhatsApp, name="whatsapp"),
     path('', views.index, name='index'),
 ]

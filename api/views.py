@@ -2,6 +2,8 @@ from django.http import HttpResponse
 from api.models import Customer,Record,Stock
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
+
+from api.scripts import web_script
 from .serializers import UserSerializer,CustomerSerializer,RecordSerializer,StockSerializer
 from rest_framework import permissions
 
@@ -28,5 +30,10 @@ class RecordViewSet(viewsets.ModelViewSet):
 class StockViewSet(viewsets.ModelViewSet):
     queryset = Stock.objects.all()
     serializer_class = StockSerializer
+
+
+def InvokeWhatsApp(request):
+    permission_classes = [permissions.AllowAny]
+    web_script.call_api()
 
     
