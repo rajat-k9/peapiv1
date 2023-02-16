@@ -1,18 +1,24 @@
 # importing the requests library
-import requests
+# import requests
 from .whatsapp import Whatsapp
+from api.models import Stock
 
 def call_api():
+    data = []
     what_obj = Whatsapp()
-    # api-endpoint
-    URL = "https://rajatinfo.pythonanywhere.com/api/stocks/"
+    stock_queryset = Stock.objects.all()
+    lst = []
+    for item in stock_queryset:
+        data.append({"name":item.name,"shop":item.shop,"home":item.home})
+    # # api-endpoint
+    # URL = "https://rajatinfo.pythonanywhere.com/api/stocks/"
 
 
-    # sending get request and saving the response as response object
-    r = requests.get(url = URL)
+    # # sending get request and saving the response as response object
+    # r = requests.get(url = URL)
 
-    # extracting data in json format
-    data = r.json()
+    # # extracting data in json format
+    # data = r.json()
     
     return what_obj.send_alert(data)
     
