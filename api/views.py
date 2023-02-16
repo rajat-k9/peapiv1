@@ -34,6 +34,6 @@ class StockViewSet(viewsets.ModelViewSet):
 
 def InvokeWhatsApp(request):
     permission_classes = [permissions.AllowAny]
-    web_script.call_api()
+    return HttpResponse(web_script.call_api())
 
     

@@ -1,6 +1,6 @@
 # importing the requests library
 import requests
-from whatsapp import Whatsapp
+from .whatsapp import Whatsapp
 
 def call_api():
     what_obj = Whatsapp()
@@ -14,7 +14,7 @@ def call_api():
     # extracting data in json format
     data = r.json()
     
-    what_obj.send_alert(data)
+    return what_obj.send_alert(data)
     
 
     # # extracting latitude, longitude and formatted address
@@ -28,6 +28,6 @@ def call_api():
     # 	%(latitude, longitude,formatted_address))
 
 
-if __name__ == "__main__":
-    call_api()
+# if __name__ == "__main__":
+#     call_api()
 

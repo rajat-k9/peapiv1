@@ -29,7 +29,7 @@ class Whatsapp():
         css = 'body {background: white;}'
 
         # screenshot an HTML string (css is optional)
-        hti.screenshot(html_str=html, css_str=css, save_as='stock.png', size=(300, 500))
+        hti.screenshot(html_str=html, css_str=css, save_as='stock.png', size=(300, 700))
         # with open("page.png","r") as file:
         #     x = file.name
         #     print(x)
@@ -49,6 +49,7 @@ class Whatsapp():
             'stock.png','stock.png','Wire Stock on '+today.strftime("%d-%m-%Y"))
         if resultSend.code == 200:
             print(resultSend.data)
+            return resultSend.data
         else:
             print(resultSend.error)    
         # else:
