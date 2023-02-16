@@ -2,6 +2,7 @@ from whatsapp_api_client_python import API as API
 from html2image import Html2Image
 # from api.models import Stock
 from datetime import date
+import os
 
 
 
@@ -24,12 +25,19 @@ class Whatsapp():
         # for obj in stock_queryset:
         #     html = html + "<tr><td>"+obj.name+"</td><td>"+str(obj.home)+"</td><td>"+str(obj.shop)+"</td></tr>"
         # html = html + "</tbody></table>"
-        hti = Html2Image()
+
+        script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+        rel_path = "stock.png"
+        abs_file_path = os.path.join(script_dir, rel_path)
+        print(abs_file_path)
+        hti = Html2Image(output_path=script_dir)
 
         css = 'body {background: white;}'
 
+       
+
         # screenshot an HTML string (css is optional)
-        hti.screenshot(html_str=html, css_str=css, save_as='stock.png', size=(300, 700))
+        hti.screenshot(html_str=html, css_str=css,  save_as=rel_path, size=(300, 700))
         # with open("page.png","r") as file:
         #     x = file.name
         #     print(x)
@@ -45,8 +53,7 @@ class Whatsapp():
             # resultSend = greenAPI.sending.sendMessage(resultCreate.data['chatId'], 'Message text')
         # resultSend = greenAPI.sending.sendMessage(GROUP_ID, 'Message text')
         today = date.today()
-        resultSend = greenAPI.sending.sendFileByUpload(GROUP_ID, 
-            'stock.png','stock.png','Wire Stock on '+today.strftime("%d-%m-%Y"))
+        resultSend = greenAPI.sending.sendFileByUpload(GROUP_ID, abs_file_path,'stock.png','Wire Stock on '+today.strftime("%d-%m-%Y"))
         if resultSend.code == 200:
             print(resultSend.data)
             return resultSend.data
