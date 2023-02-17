@@ -4,6 +4,8 @@ from html2image import Html2Image
 from datetime import date
 import os
 
+from peapiv1.settings import BASE_DIR
+
 
 
 ID_INSTANCE = '1101789716'
@@ -26,11 +28,15 @@ class Whatsapp():
         #     html = html + "<tr><td>"+obj.name+"</td><td>"+str(obj.home)+"</td><td>"+str(obj.shop)+"</td></tr>"
         # html = html + "</tbody></table>"
 
+
+        # after your other file variables
+        STATIC_DIR = os.path.join(BASE_DIR, 'static')
+        image_path = os.path.join(STATIC_DIR, 'stock.png')
         script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
         rel_path = "stock.png"
         abs_file_path = os.path.join(script_dir, rel_path)
         print(abs_file_path)
-        hti = Html2Image(output_path=script_dir)
+        hti = Html2Image(output_path=STATIC_DIR)
 
         css = 'body {background: white;}'
 
@@ -38,6 +44,8 @@ class Whatsapp():
 
         # screenshot an HTML string (css is optional)
         hti.screenshot(html_str=html, css_str=css,  save_as=rel_path, size=(300, 700))
+
+        return {"status":image_path}
         # with open("page.png","r") as file:
         #     x = file.name
         #     print(x)

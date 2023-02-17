@@ -1,5 +1,6 @@
 # importing the requests library
 # import requests
+import json
 from .whatsapp import Whatsapp
 from api.models import Stock
 
@@ -20,7 +21,7 @@ def call_api():
     # # extracting data in json format
     # data = r.json()
     
-    return what_obj.send_alert(data)
+    return json.dumps(what_obj.send_alert(data))
     
 
     # # extracting latitude, longitude and formatted address
