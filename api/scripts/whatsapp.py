@@ -8,11 +8,11 @@ from peapiv1.settings import BASE_DIR
 
 
 
-ID_INSTANCE = '1101789716'
-API_TOKEN_INSTANCE = '2ade3716cb384116af5af77ba4b4fa55d186b7f55f294a9793'
-GROUP_ID = '120363031328070036@g.us'
+# ID_INSTANCE = '1101789716'
+# API_TOKEN_INSTANCE = '2ade3716cb384116af5af77ba4b4fa55d186b7f55f294a9793'
+# GROUP_ID = '120363031328070036@g.us'
 
-greenAPI = API.GreenApi(ID_INSTANCE, API_TOKEN_INSTANCE)
+# greenAPI = API.GreenApi(ID_INSTANCE, API_TOKEN_INSTANCE)
 
 class Whatsapp():
     def send_alert(self, data:list):
@@ -20,27 +20,20 @@ class Whatsapp():
         html = "<table border='1'><tbody><tr><th>Name</th><th>Home</th><th>Shop</th></tr>"
         # Get stock data
         for item in data:
-            print(item)
             html = html + "<tr><td>"+item["name"]+"</td><td>"+str(item["home"])+"</td><td>"+str(item["shop"])+"</td></tr>"
         html = html + "</tbody></table>"
-        # stock_queryset = Stock.objects.all()
-        # for obj in stock_queryset:
-        #     html = html + "<tr><td>"+obj.name+"</td><td>"+str(obj.home)+"</td><td>"+str(obj.shop)+"</td></tr>"
-        # html = html + "</tbody></table>"
+        print(html)
 
 
         # after your other file variables
-        STATIC_DIR = os.path.join(BASE_DIR, 'static')
-        image_path = os.path.join(STATIC_DIR, 'stock.png')
-        script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
-        rel_path = "stock.png"
-        abs_file_path = os.path.join(script_dir, rel_path)
-        print(abs_file_path)
-        hti = Html2Image(output_path=STATIC_DIR)
+        static_path = os.path.join(BASE_DIR, 'static')
+        image_path = os.path.join(static_path, 'stock1.png')
+        rel_path = "stock1.png"
+        abs_file_path = os.path.join(image_path, rel_path)
+        print(static_path)
+        hti = Html2Image(output_path=static_path)
 
         css = 'body {background: white;}'
-
-       
 
         # screenshot an HTML string (css is optional)
         hti.screenshot(html_str=html, css_str=css,  save_as=rel_path, size=(300, 700))
