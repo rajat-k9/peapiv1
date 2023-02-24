@@ -13,5 +13,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('invokewhatsapp/', views.InvokeWhatsApp, name="whatsapp"),
+    path('login/', views.LoginView.as_view()),
     path('', views.index, name='index'),
 ]
