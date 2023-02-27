@@ -19,7 +19,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 class RecordSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
     created_on = serializers.ReadOnlyField()
-    customer = CustomerSerializer()
+    customer = CustomerSerializer(required=False)
     
     class Meta:
         model = Record
@@ -27,9 +27,12 @@ class RecordSerializer(serializers.ModelSerializer):
         "is_replacement","remarks","sale_date","created_on","customer"]
 
     def create(self, validated_data):
-        new_data = validated_data.pop('customer')
-        customer, created = Customer.objects.get_or_create(**new_data)
-        return Record.objects.create(**validated_data, customer=customer)
+        if "customer" in validated_data:
+            new_data = validated_data.pop('customer')
+            customer, created = Customer.objects.get_or_create(**new_data)
+            return Record.objects.create(**validated_data, customer=customer)
+        else:
+            return Record.objects.create(**validated_data, customer=None)
 
     def get_user_name(self, obj):
        return obj.user_id.username
