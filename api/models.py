@@ -22,7 +22,7 @@ class Record(models.Model):
     sale_date = models.DateTimeField(default=now)
     created_on = models.DateTimeField(auto_now_add=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
-
+    order_id = models.CharField(max_length=20, default="1111111")
     class Meta:
         ordering = ('-sale_date','-created_on')
 

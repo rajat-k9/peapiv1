@@ -1,3 +1,5 @@
+import random
+import string
 from rest_framework import views
 from django.http import HttpResponse
 from api.models import Customer,Record,Stock
@@ -29,6 +31,26 @@ class CustomerViewSet(viewsets.ModelViewSet):
 class RecordViewSet(viewsets.ModelViewSet):
     queryset = Record.objects.all()
     serializer_class = RecordSerializer
+
+    def create(self, request):
+        print(request.data)
+        orderid = ''.join(random.choices(string.ascii_uppercase +
+                             string.digits, k=7))
+        if "customer" in request.data:
+            customer, created = Customer.objects.get_or_create(request.data[0])
+            for rec in request.data:
+                serializer = RecordSerializer(data=rec, **customer)
+                if serializer.is_valid():
+                    serializer.validated_data['order_id'] = orderid 
+                    serializer.save()
+            return Response({"order_id":orderid}, status=status.HTTP_201_CREATED)
+        else:
+            for rec in request.data:
+                serializer = RecordSerializer(data=rec)
+                if serializer.is_valid():
+                    serializer.validated_data['order_id'] = orderid
+                    serializer.save()
+            return Response({"order_id":orderid}, status=status.HTTP_201_CREATED)
 
 
 class StockViewSet(viewsets.ModelViewSet):

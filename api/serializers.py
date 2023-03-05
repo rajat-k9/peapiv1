@@ -26,13 +26,14 @@ class RecordSerializer(serializers.ModelSerializer):
         fields = ["id","user_id","user_name","product_name","amount","sku","qty",
         "is_replacement","remarks","sale_date","created_on","customer"]
 
-    def create(self, validated_data):
-        if "customer" in validated_data:
-            new_data = validated_data.pop('customer')
-            customer, created = Customer.objects.get_or_create(**new_data)
-            return Record.objects.create(**validated_data, customer=customer)
-        else:
-            return Record.objects.create(**validated_data, customer=None)
+    # def create(self, validated_data):
+    #     print(isinstance(validated_data, list))
+    #     if "customer" in validated_data:
+    #         new_data = validated_data.pop('customer')
+    #         customer, created = Customer.objects.get_or_create(**new_data)
+    #         return Record.objects.create(**validated_data, customer=customer)
+    #     else:
+    #         return Record.objects.create(**validated_data, customer=None)
 
     def get_user_name(self, obj):
        return obj.user_id.username
@@ -93,3 +94,4 @@ class LoginSerializer(serializers.Serializer):
         # It will be used in the view.
         attrs['user'] = user
         return attrs
+    
