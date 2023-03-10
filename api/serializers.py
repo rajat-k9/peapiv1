@@ -24,7 +24,7 @@ class RecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = Record
         fields = ["id","user_id","user_name","product_name","amount","sku","qty",
-        "is_replacement","remarks","sale_date","created_on","customer"]
+        "is_replacement","remarks","sale_date","created_on","customer","order_id"]
 
     # def create(self, validated_data):
     #     print(isinstance(validated_data, list))

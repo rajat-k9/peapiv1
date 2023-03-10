@@ -36,12 +36,14 @@ class RecordViewSet(viewsets.ModelViewSet):
         print(request.data)
         orderid = ''.join(random.choices(string.ascii_uppercase +
                              string.digits, k=7))
-        if "customer" in request.data:
-            customer, created = Customer.objects.get_or_create(request.data[0])
+        if "customer" in request.data[0]:
+            new_data = request.data[0].pop('customer')
+            customer, created = Customer.objects.get_or_create(name=new_data["name"],contact=new_data["contact"])
             for rec in request.data:
-                serializer = RecordSerializer(data=rec, **customer)
+                serializer = RecordSerializer(data=rec)
                 if serializer.is_valid():
-                    serializer.validated_data['order_id'] = orderid 
+                    serializer.validated_data['order_id'] = orderid
+                    serializer.validated_data['customer'] = customer 
                     serializer.save()
             return Response({"order_id":orderid}, status=status.HTTP_201_CREATED)
         else:
