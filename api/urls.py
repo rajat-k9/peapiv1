@@ -6,7 +6,7 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'customers', views.CustomerViewSet)
-router.register(r'records', views.RecordViewSet)
+router.register(r'records', views.RecordViewSet, basename='records')
 router.register(r'stocks', views.StockViewSet, basename='stocks')
 
 urlpatterns = [

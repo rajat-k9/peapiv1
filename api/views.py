@@ -32,8 +32,18 @@ class RecordViewSet(viewsets.ModelViewSet):
     queryset = Record.objects.all()
     serializer_class = RecordSerializer
 
+    def list(self, request):
+        if request.method == 'GET':
+            queryset = Record.objects.all()
+            from_date = request.GET.get('from', None)
+            to_date = request.GET.get('to', None)
+            if from_date is not None:
+                queryset = self.queryset.filter(sale_date__range=[from_date, to_date])
+            serializer_class = RecordSerializer(queryset, many=True)
+            return Response(serializer_class.data)
+
+
     def create(self, request):
-        print(request.data)
         orderid = ''.join(random.choices(string.ascii_uppercase +
                              string.digits, k=7))
         if "customer" in request.data[0]:
