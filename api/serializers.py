@@ -42,7 +42,7 @@ class RecordSerializer(serializers.ModelSerializer):
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stock
-        fields = ["id","name","home","shop"]
+        fields = ["id","name","home","shop","category"]
     
     def create(self, validated_data):
         return Stock.objects.create(**validated_data)
@@ -51,6 +51,7 @@ class StockSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.home = validated_data.get('home', instance.home)
         instance.shop = validated_data.get('shop', instance.shop)
+        instance.category = validated_data.get('category', instance.category)
         instance.save()
         return instance
     

@@ -30,10 +30,16 @@ class Record(models.Model):
         return self.product_name
     
 
+CATEGORY_CHOICES =(
+    ("wire", "Wire Cable"),
+    ("board", "Distribution Board"),
+    ("china_light", "China Light"),
+)
 class Stock(models.Model):
     name = models.CharField(max_length=100)
     home = models.IntegerField(default=0)
     shop = models.IntegerField(default=0)
+    category = models.CharField(max_length=100, choices = CATEGORY_CHOICES ,default="wire")
 
     def __str__(self) -> str:
         return self.name

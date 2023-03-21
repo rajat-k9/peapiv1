@@ -56,8 +56,19 @@ class RecordViewSet(viewsets.ModelViewSet):
 
 
 class StockViewSet(viewsets.ModelViewSet):
-    queryset = Stock.objects.all()
     serializer_class = StockSerializer
+    queryset = Stock.objects.all()
+
+    def list(self, request):
+        if request.method == 'GET':
+            queryset = Stock.objects.all()
+            category = request.GET.get('category', None)
+            if category is not None:
+                queryset = self.queryset.filter(category=category)
+            serializer_class = StockSerializer(queryset, many=True)
+            return Response(serializer_class.data)
+        
+       
 
 
 def InvokeWhatsApp(request):
