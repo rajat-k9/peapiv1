@@ -29,6 +29,14 @@ class Record(models.Model):
     def __str__(self):
         return self.product_name
     
+class Product(models.Model):
+    sku = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
+    active = models.BooleanField(default=True)
+
+    def __str__(self) -> str:
+        return self.name
+
 
 CATEGORY_CHOICES =(
     ("wire", "Wire Cable"),
@@ -37,10 +45,12 @@ CATEGORY_CHOICES =(
 )
 class Stock(models.Model):
     name = models.CharField(max_length=100)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     home = models.IntegerField(default=0)
     shop = models.IntegerField(default=0)
     category = models.CharField(max_length=100, choices = CATEGORY_CHOICES ,default="wire")
 
     def __str__(self) -> str:
         return self.name
+
     

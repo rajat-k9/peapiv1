@@ -1,17 +1,19 @@
 import random
 import string
-from rest_framework import views
+import csv
+from rest_framework import views, filters
 from django.http import HttpResponse
-from api.models import Customer,Record,Stock
+from api.models import Customer,Record,Stock,Product
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 
 from api.scripts import web_script
-from .serializers import UserSerializer,CustomerSerializer,RecordSerializer,StockSerializer,LoginSerializer
+from .serializers import ProductSerializer, UserSerializer,CustomerSerializer,RecordSerializer,StockSerializer,LoginSerializer
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
 
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
@@ -27,6 +29,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
 
+def _updatestock(id):
+    if Stock.objects.get(product_id = id):
+        stock = Stock.objects.get(product_id = id)
+        stock.shop = stock.shop - 1
+        stock.save()
 
 class RecordViewSet(viewsets.ModelViewSet):
     queryset = Record.objects.all()
@@ -55,6 +62,7 @@ class RecordViewSet(viewsets.ModelViewSet):
                     serializer.validated_data['order_id'] = orderid
                     serializer.validated_data['customer'] = customer 
                     serializer.save()
+                    _updatestock(rec["sku"])
             return Response({"order_id":orderid}, status=status.HTTP_201_CREATED)
         else:
             for rec in request.data:
@@ -62,6 +70,7 @@ class RecordViewSet(viewsets.ModelViewSet):
                 if serializer.is_valid():
                     serializer.validated_data['order_id'] = orderid
                     serializer.save()
+                    _updatestock(rec["sku"])
             return Response({"order_id":orderid}, status=status.HTTP_201_CREATED)
 
 
@@ -80,10 +89,18 @@ class StockViewSet(viewsets.ModelViewSet):
         
        
 
-
-def InvokeWhatsApp(request):
-    permission_classes = [permissions.AllowAny]
-    return HttpResponse(web_script.call_api())
+@csrf_exempt
+def UploadProduct(request):
+    # permission_classes = [permissions.AllowAny]
+    if request.method == 'POST':
+        # FileStorage object wrapper
+        file = request.FILES["myfile"]                    
+        if file:
+            decoded_file = file.read().decode('utf-8-sig').splitlines()
+            reader = csv.DictReader(decoded_file)
+            for row in reader:
+                Product.objects.get_or_create(sku=row["ID"],name=row["Value"])
+    return HttpResponse("OK")
 
 class LoginView(views.APIView):
     # This view should be accessible also for unauthenticated users.
@@ -97,5 +114,12 @@ class LoginView(views.APIView):
         login(request, user)
         data = {"userid":User.objects.get(username=user).pk}
         return Response(data, status=status.HTTP_202_ACCEPTED)
+    
 
+class ProductViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    search_fields = ['name']
+    filter_backends = (filters.SearchFilter,)
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
     

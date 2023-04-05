@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from api.models import Customer,Record,Stock
+from api.models import Customer, Product,Record,Stock
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 
@@ -42,10 +42,13 @@ class RecordSerializer(serializers.ModelSerializer):
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stock
-        fields = ["id","name","home","shop","category"]
+        fields = ("id","name","home","shop","category","product_id")
     
     def create(self, validated_data):
-        return Stock.objects.create(**validated_data)
+        prod_id = self.context['request'].data.get("product_id",None)
+        prod = Product.objects.get(pk=prod_id)
+        instance = Stock.objects.create(product = prod, **validated_data)
+        return instance
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
@@ -95,4 +98,8 @@ class LoginSerializer(serializers.Serializer):
         # It will be used in the view.
         attrs['user'] = user
         return attrs
-    
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'name']
