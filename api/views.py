@@ -30,10 +30,13 @@ class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
 
 def _updatestock(id):
-    if Stock.objects.get(product_id = id):
-        stock = Stock.objects.get(product_id = id)
-        stock.shop = stock.shop - 1
-        stock.save()
+    try:
+        if Stock.objects.get(product_id = id):
+            stock = Stock.objects.get(product_id = id)
+            stock.shop = stock.shop - 1
+            stock.save()
+    except:
+        pass
 
 class RecordViewSet(viewsets.ModelViewSet):
     queryset = Record.objects.all()

@@ -7,10 +7,13 @@ def migrate_data(apps, schema_editor):
     Stock = apps.get_model('api', 'Stock')
     Product = apps.get_model('api', 'Product')
     for item in Stock.objects.all():
-        product = Product.objects.filter(name=item.name)
-        if product:
-            item.product = product
-            item.save()
+        try:
+            product = Product.objects.get(name=item.name)
+            if product:
+                item.product = product
+                item.save()
+        except Product.DoesNotExist:
+            pass
 
 
 class Migration(migrations.Migration):
