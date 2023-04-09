@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from api.models import Customer, Product,Record,Stock
+from api.models import Customer, Payment, Product,Record,Stock
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 
@@ -103,3 +103,10 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'name']
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ['id', 'user_id', 'name', 'mobile', 'amount', 'type', 
+                  'created_on', 'due_date', 'remarks', 'due_date_history']

@@ -3,13 +3,13 @@ import string
 import csv
 from rest_framework import views, filters
 from django.http import HttpResponse
-from api.models import Customer,Record,Stock,Product
+from api.models import Customer, Payment,Record,Stock,Product
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 
 from api.scripts import web_script
-from .serializers import ProductSerializer, UserSerializer,CustomerSerializer,RecordSerializer,StockSerializer,LoginSerializer
+from .serializers import PaymentSerializer, ProductSerializer, UserSerializer,CustomerSerializer,RecordSerializer,StockSerializer,LoginSerializer
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import status
@@ -126,3 +126,28 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+
+    def create(self, request):
+        print(request.data)
+        if request.data['mobile'] != "" and request.data["name"] != "":
+            customer, created = Customer.objects.get_or_create(name=request.data["name"],
+                                                               contact=request.data["mobile"])
+            if customer:
+                serializer = PaymentSerializer(data=request.data)
+                if serializer.is_valid():
+                    serializer.validated_data['customer'] = customer
+                    serializer.save()
+            else:
+                serializer = PaymentSerializer(data=request.data)
+                if serializer.is_valid():
+                    serializer.save()
+        else:
+            serializer = PaymentSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

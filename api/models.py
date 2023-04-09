@@ -52,5 +52,26 @@ class Stock(models.Model):
 
     def __str__(self) -> str:
         return self.name
+    
+
+PAYMENT_TYPE_CHOICES =(
+    ("income", "Payment In(income)"),
+    ("expense", "Payment Out(expense)"),
+)
+
+class Payment(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
+    mobile = models.CharField(max_length=50, blank=True, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    type = models.CharField(max_length=50, choices = PAYMENT_TYPE_CHOICES ,default="income")
+    remarks = models.TextField(default="",null=True,blank=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    due_date = models.DateTimeField(blank=True, null=True)
+    due_date_history = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.name
 
     
