@@ -106,7 +106,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Payment
-        fields = ['id', 'user_id', 'name', 'mobile', 'amount', 'type', 
+        fields = ['id', 'user_id', 'user_name', 'name', 'mobile', 'amount', 'type', 
                   'created_on', 'due_date', 'remarks', 'due_date_history']
+
+    def get_user_name(self, obj):
+       return obj.user_id.username
