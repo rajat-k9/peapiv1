@@ -20,11 +20,12 @@ class RecordSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
     created_on = serializers.ReadOnlyField()
     customer = CustomerSerializer(required=False)
+    itemcode = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = Record
         fields = ["id","user_id","user_name","product_name","amount","sku","qty",
-        "is_replacement","remarks","sale_date","created_on","customer","order_id"]
+        "is_replacement","remarks","sale_date","created_on","customer","order_id","itemcode"]
 
     # def create(self, validated_data):
     #     print(isinstance(validated_data, list))
@@ -37,6 +38,14 @@ class RecordSerializer(serializers.ModelSerializer):
 
     def get_user_name(self, obj):
        return obj.user_id.username
+
+    def get_itemcode(self, obj):
+        code = ""
+        try:
+            code = Product.objects.get(pk=obj.sku).sku
+        except Exception as e:
+            print(e.args)
+        return code
 
     
 class StockSerializer(serializers.ModelSerializer):
