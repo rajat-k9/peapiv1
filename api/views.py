@@ -3,13 +3,13 @@ import string
 import csv
 from rest_framework import views, filters
 from django.http import HttpResponse
-from api.models import Customer, Payment,Record,Stock,Product
+from api.models import Customer, Payment,Record,Stock,Product, Vendor
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 
 from api.scripts import web_script
-from .serializers import PaymentSerializer, ProductSerializer, UserSerializer,CustomerSerializer,RecordSerializer,StockSerializer,LoginSerializer
+from .serializers import PaymentSerializer, ProductSerializer, UserSerializer,CustomerSerializer,RecordSerializer,StockSerializer,LoginSerializer, VendorSerializer
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,6 +28,12 @@ class UserViewSet(viewsets.ModelViewSet):
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+
+
+class VendorViewSet(viewsets.ModelViewSet):
+    queryset = Vendor.objects.all()
+    serializer_class = VendorSerializer
+
 
 def _updatestock(id):
     try:
@@ -134,7 +140,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         print(request.data)
-        if request.data['mobile'] != "" and request.data["name"] != "":
+        if request.data['vid'] != "":
+            serializer = PaymentSerializer(data=request.data)
+            if serializer.is_valid():
+                    vendor = Vendor.objects.get(pk=request.data['vid'])
+                    serializer.validated_data['vendor'] = vendor
+                    serializer.save()
+        elif request.data['mobile'] != "" and request.data["name"] != "":
             customer, created = Customer.objects.get_or_create(name=request.data["name"],
                                                                contact=request.data["mobile"])
             if customer:

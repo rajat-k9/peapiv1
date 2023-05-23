@@ -11,6 +11,14 @@ class Customer(models.Model):
         return self.name
 
 
+class Vendor(models.Model):
+    name = models.CharField(max_length=255)
+    contact = models.CharField(max_length=33, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Record(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     product_name = models.CharField(max_length=255, null=True)
@@ -61,6 +69,7 @@ PAYMENT_TYPE_CHOICES =(
 
 class Payment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     mobile = models.CharField(max_length=50, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

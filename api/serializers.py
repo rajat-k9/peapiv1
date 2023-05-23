@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from api.models import Customer, Payment, Product,Record,Stock
+from api.models import Customer, Payment, Product,Record,Stock, Vendor
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 
@@ -13,7 +13,13 @@ class UserSerializer(serializers.ModelSerializer):
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ["name","contact"]
+        fields = ["id","name","contact"]
+
+
+class VendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vendor
+        fields = ["id","name","contact"]
 
 
 class RecordSerializer(serializers.ModelSerializer):
