@@ -31,8 +31,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
 
 class VendorViewSet(viewsets.ModelViewSet):
-    queryset = Vendor.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = Vendor.objects.all().order_by("name")
     serializer_class = VendorSerializer
+    search_fields = ['name']
+    filter_backends = (filters.SearchFilter,)
 
 
 def _updatestock(id):
