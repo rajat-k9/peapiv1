@@ -138,7 +138,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class PaymentViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = Payment.objects.all()
+    queryset = Payment.objects.select_related('vendor').all()
     serializer_class = PaymentSerializer
 
     def create(self, request):

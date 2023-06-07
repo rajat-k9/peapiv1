@@ -122,10 +122,24 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class PaymentSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
+    vendor_name = serializers.SerializerMethodField(read_only=True)
+    vendor_id = serializers.SerializerMethodField(read_only=True)
+    vendor_contact = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Payment
         fields = ['id', 'user_id', 'user_name', 'name', 'mobile', 'amount', 'type', 
-                  'created_on', 'due_date', 'remarks', 'due_date_history']
+                  'created_on', 'due_date', 'remarks', 'due_date_history', 'vendor_name',
+                    'vendor_id', 'vendor_contact']
 
     def get_user_name(self, obj):
        return obj.user_id.username
+    
+    def get_vendor_name(self, obj):
+        return obj.vendor.name if obj.vendor is not None else ""
+    
+    def get_vendor_id(self, obj):
+        return obj.vendor.id if obj.vendor is not None else ""
+    
+    def get_vendor_contact(self, obj):
+        return obj.vendor.contact if obj.vendor is not None else ""
+    

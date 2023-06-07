@@ -65,6 +65,7 @@ class Stock(models.Model):
 PAYMENT_TYPE_CHOICES =(
     ("income", "Payment In(income)"),
     ("expense", "Payment Out(expense)"),
+    ("stock_in", "Stock In(debit)"),
 )
 
 class Payment(models.Model):
