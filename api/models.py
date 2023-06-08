@@ -82,6 +82,6 @@ class Payment(models.Model):
     due_date_history = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self) -> str:
-        return self.name
+        return self.name if self.name else ""
 
     

@@ -2,7 +2,7 @@ import random
 import string
 import csv
 from rest_framework import views, filters
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from api.models import Customer, Payment,Record,Stock,Product, Vendor
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
@@ -127,6 +127,13 @@ class LoginView(views.APIView):
         data = {"userid":User.objects.get(username=user).pk}
         return Response(data, status=status.HTTP_202_ACCEPTED)
     
+def GetLedger(request):
+    if request.method == 'GET':
+        vid = request.GET.get('vid')
+        if vid:
+            return JsonResponse(data=list(Payment.objects.filter(vendor__id=vid).order_by('created_on','type','amount')
+                                          .values('vendor__name','vendor__contact','created_on','type','amount','remarks')), safe=False)
+        
 
 class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]

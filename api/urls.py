@@ -16,6 +16,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('uploadproduct/', views.UploadProduct, name="product"),
+    path('ledger/', views.GetLedger, name="ledger"),
     path('login/', views.LoginView.as_view()),
     path('', views.index, name='index'),
 ]
