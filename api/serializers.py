@@ -17,9 +17,21 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class VendorSerializer(serializers.ModelSerializer):
+    balance = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Vendor
-        fields = ["id","name","contact"]
+        fields = ["id","name","contact","balance"]
+
+    def get_balance(self, obj):
+        queryset = Payment.objects.filter(vendor=obj).values_list("amount","type")
+        bal = 0.0
+        for i in queryset:
+            if i[1] == "expense":
+                bal = bal + float(i[0])
+            else:
+                bal = bal - float(i[0])
+            print(obj.name,bal)
+        return bal
 
 
 class RecordSerializer(serializers.ModelSerializer):
