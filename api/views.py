@@ -3,6 +3,7 @@ import string
 import csv
 from rest_framework import views, filters
 from django.http import HttpResponse, JsonResponse
+from api.common.util import DateUtil
 from api.models import Customer, Payment,Record,Stock,Product, Vendor
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
@@ -14,6 +15,9 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
+from datetime import datetime
+from django.db.models import Sum
+from django.db.models.functions import TruncDate
 
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
@@ -173,3 +177,22 @@ class PaymentViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+def dashboard_income_expense(request):
+    result = []
+    result.append(['Date', 'Expenses', 'Sales'])
+    currentMonth = datetime.now().month
+    currentYear = datetime.now().year
+    util = DateUtil()
+    util.numberOfDays(currentYear,currentMonth)
+    payments = Payment.objects.filter(created_on__year=currentYear, created_on__month=currentMonth)
+    sales = Record.objects.filter(sale_date__year=currentYear, sale_date__month='3').annotate(date=TruncDate('sale_date')).values('date').annotate(amt=Sum('amount')).values('date', 'amt')
+    for item in sales:
+        payment = Payment.objects.filter(created_on = item['date'], type='expense').annotate(expense=Sum('amount')).values('expense')
+        if payment:
+            result.append([item['date'].strftime("%Y-%m-%d"),payment[0]["expense"],item['amt']])
+        else:
+            result.append([item['date'].strftime("%Y-%m-%d"),"0",item['amt']])
+
+    return HttpResponse(content=result)

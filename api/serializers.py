@@ -30,7 +30,6 @@ class VendorSerializer(serializers.ModelSerializer):
                 bal = bal + float(i[0])
             else:
                 bal = bal - float(i[0])
-            print(obj.name,bal)
         return bal
 
 

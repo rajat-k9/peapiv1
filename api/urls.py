@@ -19,4 +19,5 @@ urlpatterns = [
     path('ledger/', views.GetLedger, name="ledger"),
     path('login/', views.LoginView.as_view()),
     path('', views.index, name='index'),
+    path('dashboard/', views.dashboard_income_expense, name='dashboard')
 ]
