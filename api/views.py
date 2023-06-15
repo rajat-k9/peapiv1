@@ -187,7 +187,7 @@ def dashboard_income_expense(request):
     util = DateUtil()
     util.numberOfDays(currentYear,currentMonth)
     payments = Payment.objects.filter(created_on__year=currentYear, created_on__month=currentMonth)
-    sales = Record.objects.filter(sale_date__year=currentYear, sale_date__month='3').annotate(date=TruncDate('sale_date')).values('date').annotate(amt=Sum('amount')).values('date', 'amt')
+    sales = Record.objects.filter(sale_date__year=currentYear, sale_date__month=currentMonth).annotate(date=TruncDate('sale_date')).values('date').annotate(amt=Sum('amount')).values('date', 'amt')
     for item in sales:
         payment = Payment.objects.filter(created_on = item['date'], type='expense').annotate(expense=Sum('amount')).values('expense')
         if payment:
