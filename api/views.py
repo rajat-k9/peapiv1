@@ -138,6 +138,11 @@ def GetLedger(request):
             return JsonResponse(data=list(Payment.objects.filter(vendor__id=vid).order_by('created_on','type','amount')
                                           .values('vendor__name','vendor__contact','created_on','type','amount','remarks')), safe=False)
         
+def printorder(request):
+    if request.method == "GET":
+        oid = request.GET.get('oid')
+        if oid:
+            return JsonResponse(data=list(Record.objects.filter(order_id=oid).values("product_name","qty","amount")), safe=False)
 
 class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -181,18 +186,17 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
 def dashboard_income_expense(request):
     result = []
-    result.append(['Date', 'Expenses', 'Sales'])
     currentMonth = datetime.now().month
     currentYear = datetime.now().year
     util = DateUtil()
     util.numberOfDays(currentYear,currentMonth)
-    payments = Payment.objects.filter(created_on__year=currentYear, created_on__month=currentMonth)
-    sales = Record.objects.filter(sale_date__year=currentYear, sale_date__month=currentMonth).annotate(date=TruncDate('sale_date')).values('date').annotate(amt=Sum('amount')).values('date', 'amt')
+    payments = Payment.objects.filter(created_on__year=currentYear, created_on__month="3")
+    sales = Record.objects.filter(sale_date__year=currentYear, sale_date__month="3").annotate(date=TruncDate('sale_date')).values('date').annotate(amt=Sum('amount')).values('date', 'amt')
     for item in sales:
         payment = Payment.objects.filter(created_on__date = item['date'].strftime("%Y-%m-%d"), type='expense').annotate(expense=Sum('amount')).values('expense')
         if payment:
-            result.append([item['date'].strftime("%Y-%m-%d"),str(payment[0]["expense"]),item['amt']])
+            result.append({"date":item['date'].strftime("%Y-%m-%d"),"expense":str(payment[0]["expense"]),"income":str(item['amt'])})
         else:
-            result.append([item['date'].strftime("%Y-%m-%d"),"0",item['amt']])
-
-    return HttpResponse(content=result)
+            result.append({"date":item['date'].strftime("%Y-%m-%d"),"expense":"0","income":str(item['amt'])})
+    print(result)
+    return JsonResponse(data=result, safe=False)
