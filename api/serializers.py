@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
-from api.models import Customer, Payment, Product,Record,Stock, Vendor
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from api import models
 
 # Serializers define the API representation.
 class UserSerializer(serializers.ModelSerializer):
@@ -10,20 +10,38 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'url', 'username', 'email', 'is_staff']
 
 
-class CustomerSerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Customer
-        fields = ["id","name","contact"]
+        model = models.Category
+        fields = ['id', 'name']
 
 
-class VendorSerializer(serializers.ModelSerializer):
+class SubcategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Subcategory
+        fields = ['id', 'name']
+
+
+class BrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Brand
+        fields = ['id', 'name']
+
+
+class ItemModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ItemModel
+        fields = ['id', 'name']
+
+
+class CustomerSerializer(serializers.ModelSerializer):
     balance = serializers.SerializerMethodField(read_only=True)
     class Meta:
-        model = Vendor
+        model = models.Customer
         fields = ["id","name","contact","balance"]
 
     def get_balance(self, obj):
-        queryset = Payment.objects.filter(vendor=obj).values_list("amount","type")
+        queryset = models.Payment.objects.filter(customer=obj).values_list("amount","type")
         bal = 0.0
         for i in queryset:
             if i[1] == "expense":
@@ -33,16 +51,66 @@ class VendorSerializer(serializers.ModelSerializer):
         return bal
 
 
-class RecordSerializer(serializers.ModelSerializer):
+class VendorSerializer(serializers.ModelSerializer):
+    balance = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = models.Vendor
+        fields = ["id","name","contact","balance"]
+
+    def get_balance(self, obj):
+        queryset = models.Payment.objects.filter(vendor=obj).values_list("amount","type")
+        bal = 0.0
+        for i in queryset:
+            if i[1] == "expense":
+                bal = bal + float(i[0])
+            else:
+                bal = bal - float(i[0])
+        return bal
+
+
+class SaleOrderSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
     created_on = serializers.ReadOnlyField()
     customer = CustomerSerializer(required=False)
-    itemcode = serializers.SerializerMethodField(read_only=True)
+    product_name = serializers.CharField(source='product.name',read_only=True)
+    itemcode = serializers.CharField(source='product.sku',read_only=True)
+
+    class Meta:
+        model = models.SaleOrder
+        fields = ["id","entry_user","user_name","sale_date","product_name",
+                  "created_on","order_id","total_amount","customer","itemcode"]
+
+    
+    def get_user_name(self, obj):
+       return obj.entry_user.username
+    
+
+class SaleReturnSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField(read_only=True)
+    created_on = serializers.ReadOnlyField()
+    customer = CustomerSerializer(required=False)
+    product_name = serializers.CharField(source='product.name',read_only=True)
+    itemcode = serializers.CharField(source='product.sku',read_only=True)
+
+    class Meta:
+        model = models.SaleReturnOrder
+        fields = ["id","entry_user","user_name","order_type","return_date","product_name",
+                  "created_on","order_id","total_amount","customer","itemcode"]
+
+    
+    def get_user_name(self, obj):
+       return obj.entry_user.username
+
+
+class RecordSerializer(serializers.ModelSerializer):
+    sale_order = SaleOrderSerializer(required=False)
+    # purchase_order = Purc
+    item_id = serializers.CharField(source='product.id')
     
     class Meta:
-        model = Record
-        fields = ["id","user_id","user_name","product_name","amount","sku","qty",
-        "is_replacement","remarks","sale_date","created_on","customer","order_id","itemcode"]
+        model = models.Record
+        fields = ["id","amount","discount","qty",
+        "is_replacement","remarks","sale_order","item_id"]
 
     # def create(self, validated_data):
     #     print(isinstance(validated_data, list))
@@ -53,36 +121,29 @@ class RecordSerializer(serializers.ModelSerializer):
     #     else:
     #         return Record.objects.create(**validated_data, customer=None)
 
-    def get_user_name(self, obj):
-       return obj.user_id.username
 
-    def get_itemcode(self, obj):
-        code = ""
-        try:
-            code = Product.objects.get(pk=obj.sku).sku
-        except Exception as e:
-            print(e.args)
-        return code
 
     
 class StockSerializer(serializers.ModelSerializer):
+    product_id = serializers.CharField(source='product.id') 
+    product_name = serializers.CharField(source='product.name')
     class Meta:
-        model = Stock
-        fields = ("id","name","home","shop","category","product_id")
+        model = models.Stock
+        fields = ("id","product_category","product_id","product_name","warehouse","qty")
     
-    def create(self, validated_data):
-        prod_id = self.context['request'].data.get("product_id",None)
-        prod = Product.objects.get(pk=prod_id)
-        instance = Stock.objects.create(product = prod, **validated_data)
-        return instance
+    # def create(self, validated_data):
+    #     prod_id = self.context['request'].data.get("product_id",None)
+    #     prod = Product.objects.get(pk=prod_id)
+    #     instance = Stock.objects.create(product = prod, **validated_data)
+    #     return instance
 
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.home = validated_data.get('home', instance.home)
-        instance.shop = validated_data.get('shop', instance.shop)
-        instance.category = validated_data.get('category', instance.category)
-        instance.save()
-        return instance
+    # def update(self, instance, validated_data):
+    #     instance.name = validated_data.get('name', instance.name)
+    #     instance.home = validated_data.get('home', instance.home)
+    #     instance.shop = validated_data.get('shop', instance.shop)
+    #     instance.category = validated_data.get('category', instance.category)
+    #     instance.save()
+    #     return instance
     
 
 class LoginSerializer(serializers.Serializer):
@@ -126,9 +187,14 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 class ProductSerializer(serializers.ModelSerializer):
+    type_name = serializers.CharField(source='type.name')
+    model_name = serializers.CharField(source='type.item_model.name')
+    brand_name = serializers.CharField(source='type.item_model.brand.name')
+    subcategory_name = serializers.CharField(source='type.item_model.brand.subcategory.name')
+    category_name = serializers.CharField(source='type.item_model.brand.subcategory.category.name')
     class Meta:
-        model = Product
-        fields = ['id', 'name']
+        model = models.Product
+        fields = ['id', 'name','type_name','model_name','brand_name','subcategory_name','category_name']
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -137,13 +203,13 @@ class PaymentSerializer(serializers.ModelSerializer):
     vendor_id = serializers.SerializerMethodField(read_only=True)
     vendor_contact = serializers.SerializerMethodField(read_only=True)
     class Meta:
-        model = Payment
-        fields = ['id', 'user_id', 'user_name', 'name', 'mobile', 'amount', 'type', 
+        model = models.Payment
+        fields = ['id','user_name',"user_id","name","mobile", 'amount', 'type', 
                   'created_on', 'due_date', 'remarks', 'due_date_history', 'vendor_name',
                     'vendor_id', 'vendor_contact']
 
     def get_user_name(self, obj):
-       return obj.user_id.username
+       return obj.user.username
     
     def get_vendor_name(self, obj):
         return obj.vendor.name if obj.vendor is not None else ""
