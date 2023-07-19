@@ -96,6 +96,17 @@ def _updatestock(id,type:str,qty:int):
         except:
             pass
 
+def checkstock(request):
+    if request.method == "GET":
+        pid = request.GET.get('pid')
+        wh = request.GET.get('warehouse')
+        try:
+            stock = Stock.objects.get(product__id = pid,warehouse=wh)
+            return JsonResponse(data={"qty":stock.qty}, safe=False)
+        except ObjectDoesNotExist as e:
+            return JsonResponse(data={"error":"item not found in stock!"}, safe=False)
+
+
 
 class PurchaseOrderViewSet(viewsets.ModelViewSet):
     def list(self, request):

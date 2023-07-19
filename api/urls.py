@@ -27,5 +27,6 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('dashboard/', views.dashboard_income_expense, name='dashboard'),
     path('printorder/', views.printorder, name='order'),
-    path('movestock/', views.move_stock, name="stockmove")
+    path('movestock/', views.move_stock, name="stockmove"),
+    path('checkstock/', views.checkstock, name="checkstock")
 ]
