@@ -187,14 +187,30 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 class ProductSerializer(serializers.ModelSerializer):
-    type_name = serializers.CharField(source='type.name')
-    model_name = serializers.CharField(source='type.item_model.name')
-    brand_name = serializers.CharField(source='type.item_model.brand.name')
-    subcategory_name = serializers.CharField(source='type.item_model.brand.subcategory.name')
-    category_name = serializers.CharField(source='type.item_model.brand.subcategory.category.name')
+    type_name = serializers.SerializerMethodField()
+    model_name = serializers.SerializerMethodField()
+    brand_name = serializers.SerializerMethodField()
+    subcategory_name = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
+    
     class Meta:
         model = models.Product
         fields = ['id', 'name','type_name','model_name','brand_name','subcategory_name','category_name']
+
+    def get_type_name(self, obj):
+        return obj.type.name
+    
+    def get_model_name(self, obj):
+        return obj.type.item_model.name
+    
+    def get_brand_name(self, obj):
+        return obj.type.item_model.brand.name
+    
+    def get_subcategory_name(self, obj):
+        return obj.type.item_model.brand.subcategory.name
+    
+    def get_category_name(self, obj):
+        return obj.type.item_model.brand.subcategory.category.name
 
 
 class PaymentSerializer(serializers.ModelSerializer):

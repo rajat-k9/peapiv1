@@ -425,7 +425,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     search_fields = ['name']
     filter_backends = (filters.SearchFilter,)
-    queryset = Product.objects.all()
+    queryset = Product.objects.select_related('type','type__item_model','type__item_model__brand','type__item_model__brand__subcategory','type__item_model__brand__subcategory__category')
     serializer_class = serializers.ProductSerializer
     
 
