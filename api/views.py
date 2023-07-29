@@ -367,8 +367,8 @@ class ProductLogViewSet(viewsets.ModelViewSet):
             from_date = request.GET.get('from', None)
             to_date = request.GET.get('to', None)
             if from_date is not None:
-                queryset = self.queryset.filter(created_on__date__range=[from_date, to_date])
-            serializer_class = serializers.ProductLogSerializer(queryset, many=True)
+                self.queryset = self.queryset.filter(created_on__date__range=[from_date, to_date])
+            serializer_class = serializers.ProductLogSerializer(self.queryset, many=True)
             return Response(serializer_class.data)
 
 @csrf_exempt
