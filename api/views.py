@@ -539,6 +539,7 @@ def move_stock(request):
         data = json.loads(request.body)
         stock1 = None
         stock2 = None
+        user = User.objects.get(pk=data[0]["entry_user"])
         for obj in data:
             from_wh = next((key for key, val in dict(WAREHOUSE_CHOICES).items() if val == obj["fromwarehouse"]), None)
             to_wh = next((key for key, val in dict(WAREHOUSE_CHOICES).items() if val == obj["towarehouse"]), None)
@@ -552,9 +553,13 @@ def move_stock(request):
                             stock2.qty = stock2.qty + int(obj["qty"])
                             stock2.save()
                             stock1.save()
+                            ProductLog.objects.create(product=prod,module="StockMove",from_wh=from_wh,
+                                          to_wh=to_wh,qty=int(obj["qty"]),entry_user=user)
                     except ObjectDoesNotExist as e:
                         prod = Product.objects.get(pk=obj["product_id"])
                         stock2 = Stock.objects.create(product = prod, warehouse=to_wh, qty=int(obj["qty"]))
+                        ProductLog.objects.create(product=prod,module="StockMove",from_wh=from_wh,
+                                          to_wh=to_wh,qty=int(obj["qty"]),entry_user=user)
             
             except ObjectDoesNotExist as e:
                     prod = Product.objects.get(pk=obj["product_id"])
@@ -565,7 +570,11 @@ def move_stock(request):
                             stock2.qty = stock2.qty + int(obj["qty"])
                             stock2.save()
                             stock1.save()
+                            ProductLog.objects.create(product=prod,module="StockMove",from_wh=from_wh,
+                                          to_wh=to_wh,qty=int(obj["qty"]),entry_user=user)
                     except ObjectDoesNotExist as e:
                         prod = Product.objects.get(pk=obj["product_id"])
                         stock2 = Stock.objects.create(product = prod, warehouse=to_wh, qty=int(obj["qty"]))
+                        ProductLog.objects.create(product=prod,module="StockMove",from_wh=from_wh,
+                                          to_wh=to_wh,qty=int(obj["qty"]),entry_user=user)
     return JsonResponse(data={"status":"OK"}, safe=False)
