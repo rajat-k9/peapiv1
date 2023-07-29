@@ -5,7 +5,7 @@ from rest_framework import views, filters
 from django.http import HttpResponse, JsonResponse
 from api.common.constant import WAREHOUSE_CHOICES
 from api.common.util import DateUtil
-from api.models import Brand, Category, Customer, ItemModel, Payment, PurchaseOrder,Record, SaleOrder, SaleReturnOrder,Stock,Product, Subcategory, Type, Vendor
+from api.models import Brand, Category, Customer, ItemModel, Payment, PurchaseOrder,Record, SaleOrder, SaleReturnOrder,Stock,Product, ProductLog, Subcategory, Type, Vendor
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
 from django.contrib.auth import login
@@ -130,7 +130,7 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         user = User.objects.get(pk=request.data["entry_user"])
         if "vendor" in request.data:
             new_data = request.data.pop('vendor')
-            vendor, create = Vendor.objects.get_or_create(name=new_data["name"],contact=new_data["contact"])
+            vendor, create = Vendor.objects.get_or_create(name=new_data["name"])
             if not invoice_id:
                 invoice_id = datetime.now().strftime("%d%m%y%H/")+new_data["name"]
         t = time.localtime()
@@ -146,6 +146,8 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
                 Record.objects.create(purchase=po_obj,product=prod,amount=rec["amount"],discount=rec["discount"],
                                       qty=rec["qty"],remarks=rec["remarks"])
                 _updatestock(rec["item_id"],"purchase",rec["qty"])
+                ProductLog.objects.create(product=prod,module="Purchase",from_wh="",
+                                          to_wh="shop",qty=rec["qty"],entry_user=user)
             Payment.objects.create(vendor = vendor,amount=request.data["invoice_amount"],type="stock_in",user=user)
             return Response({"invoice_id":invoice_id}, status=status.HTTP_201_CREATED)
         else:
@@ -215,6 +217,8 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
                 Record.objects.create(sale=sale_obj,product=prod,amount=rec["amount"],discount=rec["discount"],
                                       qty=rec["qty"],remarks=rec["remarks"])
                 _updatestock(rec["item_id"],"sale",rec["qty"])
+                ProductLog.objects.create(product=prod,module="Sale",from_wh="shop",
+                                          to_wh="",qty=rec["qty"],entry_user=user)
             return Response({"order_id":orderid}, status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -269,6 +273,8 @@ class SaleReturnViewSet(viewsets.ModelViewSet):
                 Record.objects.create(salereturn=sale_obj,product=prod,amount=rec["amount"],discount=rec["discount"],
                                       qty=rec["qty"],remarks=rec["remarks"])
                 _updatestock(rec["item_id"],"sale_return",rec["qty"])
+                ProductLog.objects.create(product=prod,module="SaleReturn",from_wh="",
+                                          to_wh="shop",qty=rec["qty"],entry_user=user)
             return Response({"order_id":orderid}, status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -352,7 +358,18 @@ class StockViewSet(viewsets.ModelViewSet):
         
         return  JsonResponse(data=obj, safe=False)
         
-       
+class ProductLogViewSet(viewsets.ModelViewSet):
+    queryset = ProductLog.objects.all()
+    serializer_class = serializers.ProductLogSerializer
+    def list(self, request):
+        if request.method == 'GET':
+            # queryset = ProductLog.objects.all()
+            from_date = request.GET.get('from', None)
+            to_date = request.GET.get('to', None)
+            if from_date is not None:
+                queryset = self.queryset.filter(created_on__date__range=[from_date, to_date])
+            serializer_class = serializers.ProductLogSerializer(queryset, many=True)
+            return Response(serializer_class.data)
 
 @csrf_exempt
 def UploadProduct(request):

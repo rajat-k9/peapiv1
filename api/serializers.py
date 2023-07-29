@@ -123,6 +123,16 @@ class RecordSerializer(serializers.ModelSerializer):
 
 
 
+class ProductLogSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField(read_only=True)
+    product_name = serializers.CharField(source='product.name')
+    class Meta:
+        model = models.ProductLog
+        fields = ("id","entry_user","created_on","user_name", "product","from_wh","to_wh",
+                  "module", "qty","product_name")
+
+    def get_user_name(self, obj):
+       return obj.entry_user.username
     
 class StockSerializer(serializers.ModelSerializer):
     product_id = serializers.CharField(source='product.id') 

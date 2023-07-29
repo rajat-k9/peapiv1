@@ -163,6 +163,19 @@ class Stock(models.Model):
         return self.product.name
     
 
+class ProductLog(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    module = models.CharField(max_length=30)
+    from_wh = models.CharField(max_length=100, choices=WAREHOUSE_CHOICES, null=True, blank=True)
+    to_wh = models.CharField(max_length=100, choices=WAREHOUSE_CHOICES, null=True, blank=True)
+    qty = models.IntegerField(default=0)
+    entry_user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.product.name
+    
+
 class Payment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, blank=True, null=True)
