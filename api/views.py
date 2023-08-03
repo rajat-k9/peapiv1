@@ -202,7 +202,10 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
                              string.digits, k=7))
         customer = None
         user = User.objects.get(pk=request.data["entry_user"])
-        if "customer" in request.data:
+        if "customer_id" in request.data:
+            new_data = request.data.pop("customer_id")
+            customer = Customer.objects.get(pk=new_data)
+        elif "customer" in request.data:
             new_data = request.data.pop('customer')
             customer, create = Customer.objects.get_or_create(name=new_data["name"],contact=new_data["contact"])
         t = time.localtime()
@@ -539,6 +542,7 @@ def move_stock(request):
         data = json.loads(request.body)
         stock1 = None
         stock2 = None
+        prod = None
         user = User.objects.get(pk=data[0]["entry_user"])
         for obj in data:
             from_wh = next((key for key, val in dict(WAREHOUSE_CHOICES).items() if val == obj["fromwarehouse"]), None)
@@ -550,6 +554,7 @@ def move_stock(request):
                     try:
                         stock2 = Stock.objects.get(product__id = obj["product_id"], warehouse=to_wh)
                         if stock2:
+                            prod = Product.objects.get(pk=obj["product_id"])
                             stock2.qty = stock2.qty + int(obj["qty"])
                             stock2.save()
                             stock1.save()
