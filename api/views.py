@@ -4,7 +4,7 @@ import csv
 from rest_framework import views, filters
 from django.http import HttpResponse, JsonResponse
 from api.common.constant import WAREHOUSE_CHOICES
-from api.common.util import DateUtil
+from api.common.util import DateUtil, OrderUtil
 from api.models import Brand, Category, Customer, ItemModel, Payment, PurchaseOrder,Record, SaleOrder, SaleReturnOrder,Stock,Product, ProductLog, Subcategory, Type, Vendor
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
-from django.db.models import Sum,F
+from django.db.models import Sum,F,Q
 import time
 import json
 from django.db.models.functions import Lower
@@ -41,6 +41,8 @@ class SubcategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = Subcategory.objects.filter(active=True)
     serializer_class = serializers.SubcategorySerializer
+    search_fields = ['name']
+    filter_backends = (filters.SearchFilter,)
 
 
 class BrandViewSet(viewsets.ModelViewSet):
@@ -198,8 +200,8 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
 
 
     def create(self, request):
-        orderid = ''.join(random.choices(string.ascii_uppercase +
-                             string.digits, k=7))
+        order_util =  OrderUtil()
+        orderid = order_util._generate_order_id("sale")
         customer = None
         user = User.objects.get(pk=request.data["entry_user"])
         if "customer_id" in request.data:
@@ -328,12 +330,25 @@ class StockViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             stock_prod_id = Stock.objects.order_by().values_list('product__id').distinct()
             queryset = Stock.objects.select_related("product").annotate(product_category=F(
-                "product__type__item_model__brand__subcategory__category")).values("product__id"
-                ,"product_category","product__name","qty","warehouse").order_by("product__name")
+                "product__type__item_model__brand__subcategory__category"),product_subcategory=F(
+                "product__type__item_model__brand__subcategory"),product_brand=F(
+                "product__type__item_model__brand"),product_model=F("product__type__item_model")).values("product__id"
+                ,"product_category","product_subcategory","product_brand","product_model","product__name","qty","warehouse").order_by("product__name")
             category = request.GET.get('category', None)
-            if category:
-                queryset = queryset.filter(product_category=category)
-                stock_prod_id = queryset.values_list('product__id').distinct()
+            # subcategory = request.GET.get('subcategory', None)
+            # brand = request.GET.get('brand', None)
+            # item_model = request.GET.get('model', None)
+            # filter = None
+            # if category:
+            #     filter = Q(product_category=category)
+            # if subcategory:
+            #     filter = filter & Q(product_subcategory=subcategory)
+            # if brand:
+            #     filter = filter & Q(product_brand=brand)
+            # if item_model:
+            #     filter = filter & Q(product_model=item_model)
+            # queryset = queryset.filter(filter)
+            stock_prod_id = queryset.values_list('product__id').distinct()
             result = []
             if queryset:
                 for id in stock_prod_id:

@@ -73,7 +73,7 @@ class SaleOrder(models.Model):
     customer = models.ForeignKey(Customer, null=True, blank=True, on_delete=models.CASCADE)
     total_amount = models.FloatField(default=0.0)
     sale_date = models.DateTimeField(default=now)
-    order_id = models.CharField(max_length=10, default="1111111")
+    order_id = models.CharField(max_length=15, default="1111111")
     created_on = models.DateTimeField(auto_now_add=True)
 
     class Meta:

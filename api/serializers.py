@@ -137,9 +137,10 @@ class ProductLogSerializer(serializers.ModelSerializer):
 class StockSerializer(serializers.ModelSerializer):
     product_id = serializers.CharField(source='product.id') 
     product_name = serializers.CharField(source='product.name')
+    selling_price = serializers.CharField(source='product.selling_price')
     class Meta:
         model = models.Stock
-        fields = ("id","product_category","product_id","product_name","warehouse","qty")
+        fields = ("id","product_category","product_id","product_name","warehouse","qty","selling_price")
     
     # def create(self, validated_data):
     #     prod_id = self.context['request'].data.get("product_id",None)
