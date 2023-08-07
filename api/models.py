@@ -62,6 +62,7 @@ class Product(models.Model):
     list_price = models.FloatField(null=True,blank=True)
     price_with_gst = models.FloatField(null=True,blank=True)
     selling_price = models.FloatField(null=True,blank=True)
+    opening_stock = models.IntegerField(null=True,blank=True,default=0)
     active = models.BooleanField(default=True)
 
     def __str__(self) -> str:

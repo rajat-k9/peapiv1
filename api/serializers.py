@@ -206,7 +206,7 @@ class ProductSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = models.Product
-        fields = ['id', 'name','type_name','model_name','brand_name','subcategory_name','category_name']
+        fields = ['id', 'name','type_name','model_name','brand_name','subcategory_name','category_name',"opening_stock"]
 
     def get_type_name(self, obj):
         return obj.type.name
