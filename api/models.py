@@ -8,6 +8,8 @@ from api.common.constant import CATEGORY_CHOICES, ORDER_TYPES, PAYMENT_MODE_CHOI
 class Customer(models.Model):
     name = models.CharField(max_length=255)
     contact = models.CharField(max_length=33, null=True)
+    opening_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
 
     def __str__(self):
         return self.name
@@ -16,6 +18,7 @@ class Customer(models.Model):
 class Vendor(models.Model):
     name = models.CharField(max_length=255)
     contact = models.CharField(max_length=33, null=True)
+    opening_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return self.name

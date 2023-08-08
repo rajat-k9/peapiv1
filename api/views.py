@@ -339,8 +339,9 @@ class StockViewSet(viewsets.ModelViewSet):
             # brand = request.GET.get('brand', None)
             # item_model = request.GET.get('model', None)
             # filter = None
-            # if category:
-            #     filter = Q(product_category=category)
+            if category:
+                # filter = Q(product_category=category)
+                queryset = queryset.filter(product_category=category)
             # if subcategory:
             #     filter = filter & Q(product_subcategory=subcategory)
             # if brand:

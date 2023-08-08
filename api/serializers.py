@@ -55,7 +55,7 @@ class VendorSerializer(serializers.ModelSerializer):
     balance = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = models.Vendor
-        fields = ["id","name","contact","balance"]
+        fields = ["id","name","contact","balance","opening_balance"]
 
     def get_balance(self, obj):
         queryset = models.Payment.objects.filter(vendor=obj).values_list("amount","type")
