@@ -333,7 +333,8 @@ class StockViewSet(viewsets.ModelViewSet):
                 "product__type__item_model__brand__subcategory__category"),product_subcategory=F(
                 "product__type__item_model__brand__subcategory"),product_brand=F(
                 "product__type__item_model__brand"),product_model=F("product__type__item_model")).values("product__id"
-                ,"product_category","product_subcategory","product_brand","product_model","product__name","qty","warehouse").order_by("product__name")
+                ,"product_category","product_subcategory","product_brand","product_model","product__name","qty",
+                "warehouse","product__selling_price").order_by("product__name")
             category = request.GET.get('category', None)
             # subcategory = request.GET.get('subcategory', None)
             # brand = request.GET.get('brand', None)
@@ -355,7 +356,7 @@ class StockViewSet(viewsets.ModelViewSet):
                 for id in stock_prod_id:
                     data = [v for v in list(queryset) if v["product__id"] == id[0]]
                     obj = {"product_id":data[0]["product__id"],"product_name":data[0]["product__name"],
-                        "product_category":data[0]["product_category"]}
+                        "product_category":data[0]["product_category"],"selling_price":data[0]["product__selling_price"]}
                     for i in data:
                         if i["warehouse"] == "home":
                             obj["home"] = i["qty"]
@@ -448,8 +449,17 @@ def GetLedger(request):
     if request.method == 'GET':
         vid = request.GET.get('vid')
         if vid:
-            return JsonResponse(data=list(Payment.objects.filter(vendor__id=vid).order_by('created_on','type','amount')
-                                          .values('vendor__name','vendor__contact','created_on','type','amount','remarks')), safe=False)
+            results = []
+            vendor = Vendor.objects.filter(id=vid).values("opening_balance","name","contact")[0]
+            payment_data = Payment.objects.filter(vendor__id=vid).order_by('created_on','type','amount').values('created_on','type','amount','remarks')
+            obj = {"type":"","remarks":"opening balance","amount":vendor["opening_balance"],"created_on":None}
+            results.append(obj)
+            for payment in payment_data:
+                obj = {"type":payment["type"],"remarks":payment["remarks"],"amount":payment["amount"],"created_on":payment["created_on"]}
+                results.append(obj)
+            vendor_obj = {"name":vendor["name"],"contact":vendor["contact"]}
+            ledger = {"vendor":vendor_obj,"data":results}
+            return JsonResponse(data=ledger, safe=False)
         
 def printorder(request):
     if request.method == "GET":
