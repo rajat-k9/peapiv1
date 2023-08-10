@@ -1,11 +1,12 @@
 import random
 import string
 import csv
+from django.shortcuts import get_object_or_404
 from rest_framework import views, filters
 from django.http import HttpResponse, JsonResponse
 from api.common.constant import WAREHOUSE_CHOICES
 from api.common.util import DateUtil, OrderUtil
-from api.models import Brand, Category, Customer, ItemModel, Payment, PurchaseOrder,Record, SaleOrder, SaleReturnOrder,Stock,Product, ProductLog, Subcategory, Type, Vendor
+from api.models import Brand, Category, Customer, ItemModel, Payment, ProductLogHistory, PurchaseOrder,Record, SaleOrder, SaleReturnOrder,Stock,Product, ProductLog, Subcategory, Type, Vendor
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
 from django.contrib.auth import login
@@ -390,6 +391,22 @@ class ProductLogViewSet(viewsets.ModelViewSet):
                 self.queryset = self.queryset.filter(created_on__date__range=[from_date, to_date])
             serializer_class = serializers.ProductLogSerializer(self.queryset, many=True)
             return Response(serializer_class.data)
+        
+    def retrieve(self, request, pk=None):
+        # queryset = User.objects.all()
+        log = get_object_or_404(self.queryset, product__id=pk)
+        if log:
+            prod = Product.objects.filter(id=pk).values("name","opening_stock")[0]
+            results = []
+            obj = {"id":0,"entry_user":2,"created_on":None,"username":"myash","product":pk,"from_wh":"",
+                   "to_wh":"","module":"Opening Stock","qty":prod["opening_stock"],"product_name":prod["name"]}
+            results.append(obj)
+            self.queryset = self.queryset.filter(product__id=pk)
+            for objc in self.queryset:
+                obj = {"id":objc["id"],"entry_user":objc["entry_user"],"created_on":objc["created_on"],"username":objc["entry_user__username"],
+                       "product":pk,"from_wh":objc["from_wh"],"to_wh":objc["to_wh"],"module":"Opening Stock","qty":prod["opening_stock"],"product_name":prod["name"]}
+            serializer = serializers.ProductLogSerializer(self.queryset, many=True)
+            return Response(serializer.data)
 
 @csrf_exempt
 def UploadProduct(request):
@@ -609,3 +626,16 @@ def move_stock(request):
                         ProductLog.objects.create(product=prod,module="StockMove",from_wh=from_wh,
                                           to_wh=to_wh,qty=int(obj["qty"]),entry_user=user)
     return JsonResponse(data={"status":"OK"}, safe=False)
+
+
+class ProductLogHistoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = ProductLogHistory.objects.all()
+    serializer_class = serializers.ProductLogHistorySerializer
+
+
+def move_stock_to_history(request):
+    products = ProductLog.objects.filter(created_on__date=datetime.now().date())
+    for prod in products:
+        ProductLogHistory.objects.create(product=prod.product,from_wh=prod.from_wh,
+                                            to_wh=prod.to_wh,qty=prod.qty,entry_user=prod.entry_user)

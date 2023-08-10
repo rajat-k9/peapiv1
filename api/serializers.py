@@ -247,3 +247,11 @@ class PaymentSerializer(serializers.ModelSerializer):
     def get_vendor_contact(self, obj):
         return obj.vendor.contact if obj.vendor is not None else ""
     
+
+class ProductLogHistorySerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    user_name = serializers.CharField(source='entry_user.username', read_only=True)
+    class Meta:
+        model = models.ProductLogHistory
+        fields = ['id', 'product', 'product_name', 'from_wh', 'to_wh','qty','entry_user',
+                  'user_name','created_on']

@@ -17,6 +17,7 @@ router.register(r'category', views.CategoryViewSet, basename='category')
 router.register(r'subcategory', views.SubcategoryViewSet, basename='subcategory')
 router.register(r'brand', views.BrandViewSet, basename='brand')
 router.register(r'model', views.ItemModelViewSet, basename='model')
+router.register(r'productloghistory', views.ProductLogHistoryViewSet, basename='productloghistory')
 
 
 urlpatterns = [
@@ -29,5 +30,6 @@ urlpatterns = [
     path('dashboard/', views.dashboard_income_expense, name='dashboard'),
     path('printorder/', views.printorder, name='order'),
     path('movestock/', views.move_stock, name="stockmove"),
+    path('movetohistory/', views.move_stock_to_history, name="stockmovehistory"),
     path('checkstock/', views.checkstock, name="checkstock")
 ]
