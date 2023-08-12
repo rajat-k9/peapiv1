@@ -17,7 +17,7 @@ router.register(r'category', views.CategoryViewSet, basename='category')
 router.register(r'subcategory', views.SubcategoryViewSet, basename='subcategory')
 router.register(r'brand', views.BrandViewSet, basename='brand')
 router.register(r'model', views.ItemModelViewSet, basename='model')
-router.register(r'productloghistory', views.ProductLogHistoryViewSet, basename='productloghistory')
+router.register(r'stockhistory', views.ProductLogHistoryViewSet, basename='productloghistory')
 
 
 urlpatterns = [

@@ -547,33 +547,33 @@ def dashboard_income_expense(request):
         for item in sales:
             payment = payments.filter(created_on__date=item['sale__sale_date__date'])
             if payment:
-                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":str(payment[0]["amt"]),"income":str(item['amt'])})
+                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(payment[0]["amt"])),"income":'{0:.2f}'.format(float(item['amt']))})
             else:
-                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":"0","income":str(item['amt'])})
+                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float("0")),"income":'{0:.2f}'.format(float(item['amt']))})
     elif sales.count() < payments.count():
         for item in payments:
             sale = sales.filter(sale__sale_date__date=item['created_on__date'])
             if sale:
-                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":str(item["amt"]),"income":str(sale[0]['amt'])})
+                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(item["amt"])),"income":'{0:.2f}'.format(float(sale[0]['amt']))})
             else:
-                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":str(item["amt"]),"income":"0"})
+                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(item["amt"])),"income":'{0:.2f}'.format(float("0"))})
     else:
         for item in payments:
             sale = sales.filter(sale__sale_date__date=item['created_on__date'])
             if sale:
-                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":str(item["amt"]),"income":str(sale[0]['amt'])})
+                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(item["amt"])),"income":'{0:.2f}'.format(float(sale[0]['amt']))})
             else:
-                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":str(item["amt"]),"income":"0"})
+                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(item["amt"])),"income":'{0:.2f}'.format(float("0"))})
         for item in sales:
             payment = payments.filter(created_on__date=item['sale__sale_date__date'])
             if payment:
-                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":str(payment[0]["amt"]),"income":str(item['amt'])})
+                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(payment[0]["amt"])),"income":'{0:.2f}'.format(float(item['amt']))})
             else:
-                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":"0","income":str(item['amt'])})
+                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float("0")),"income":'{0:.2f}'.format(float(item['amt']))})
     sales_in_month = Record.objects.filter(sale__sale_date__year=currentYear, sale__sale_date__month=currentMonth).values("product__type__item_model__brand__subcategory__category__name").annotate(amt=Sum('amount'))
     sale_records = []
     for item in sales_in_month:
-        record = {"category":item["product__type__item_model__brand__subcategory__category__name"],"amount":item["amt"]}
+        record = {"category":item["product__type__item_model__brand__subcategory__category__name"],"amount":'{0:.2f}'.format(float(item["amt"]))}
         sale_records.append(record)
     final = {"records":result,"sales":sale_records}
     print(final)
