@@ -6,7 +6,7 @@ from rest_framework import views, filters
 from django.http import HttpResponse, JsonResponse
 from api.common.constant import WAREHOUSE_CHOICES
 from api.common.util import DateUtil, OrderUtil
-from api.models import Brand, Category, Customer, ItemModel, Payment, ProductLogHistory, PurchaseOrder,Record, SaleOrder, SaleReturnOrder,Stock,Product, ProductLog, Subcategory, Type, Vendor
+from api.models import Brand, Category, Customer, ItemModel, Payment, ProductLogHistory, PurchaseOrder,Record, SaleOrder, SaleReturnOrder,Stock,Product, ProductLog, StockHistory, Subcategory, Type, Vendor
 from rest_framework import  viewsets
 from django.contrib.auth.models import User
 from django.contrib.auth import login
@@ -379,6 +379,54 @@ class StockViewSet(viewsets.ModelViewSet):
         
         return  JsonResponse(data=obj, safe=False)
         
+
+def move_stock_to_history(request):
+    products = Stock.objects.all()
+    for prod in products:
+        product = Product.objects.get(pk=prod.product_id)
+        StockHistory.objects.create(product=product,warehouse=prod.warehouse,qty=prod.qty)
+    return HttpResponse(content="ok")
+
+class StockHistoryViewSet(viewsets.ModelViewSet):
+    queryset = StockHistory.objects.all()
+    serializer_class = serializers.StockHistorySerializer
+
+    def list(self, request):
+        if request.method == 'GET':
+            stock_prod_id = StockHistory.objects.order_by().values_list('product__id').distinct()
+            queryset = StockHistory.objects.select_related("product").annotate(product_category=F(
+                "product__type__item_model__brand__subcategory__category"),product_subcategory=F(
+                "product__type__item_model__brand__subcategory"),product_brand=F(
+                "product__type__item_model__brand"),product_model=F("product__type__item_model")).values("product__id"
+                ,"product_category","product_subcategory","product_brand","product_model","product__name","qty",
+                "warehouse","product__selling_price","created_on").order_by("product__name")
+            category = request.GET.get('category', None)
+            if category:
+                # filter = Q(product_category=category)
+                queryset = queryset.filter(product_category=category)
+            stock_prod_id = queryset.values_list('product__id').distinct()
+            result = []
+            if queryset:
+                for id in stock_prod_id:
+                    data = [v for v in list(queryset) if v["product__id"] == id[0]]
+                    obj = {"product_id":data[0]["product__id"],"product_name":data[0]["product__name"],
+                        "product_category":data[0]["product_category"],"selling_price":data[0]["product__selling_price"],
+                        "created_on":data[0]["created_on"]}
+                    for i in data:
+                        if i["warehouse"] == "home":
+                            obj["home"] = i["qty"]
+                        elif i["warehouse"] == "shop":
+                            obj["shop"] = i["qty"]
+                        elif i["warehouse"] == "po_godown":
+                            obj["po_godown"] = i["qty"]
+                        elif i["warehouse"] == "colony":
+                            obj["colony"] = i["qty"]
+                        elif i["warehouse"] == "hameerpur":
+                            obj["hameerpur"] = i["qty"]
+
+                    result.append(obj)
+            return JsonResponse(data=result, safe=False)
+
 class ProductLogViewSet(viewsets.ModelViewSet):
     queryset = ProductLog.objects.all()
     serializer_class = serializers.ProductLogSerializer
@@ -632,10 +680,3 @@ class ProductLogHistoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = ProductLogHistory.objects.all()
     serializer_class = serializers.ProductLogHistorySerializer
-
-
-def move_stock_to_history(request):
-    products = ProductLog.objects.filter(created_on__date=datetime.now().date())
-    for prod in products:
-        ProductLogHistory.objects.create(product=prod.product,from_wh=prod.from_wh,
-                                            to_wh=prod.to_wh,qty=prod.qty,entry_user=prod.entry_user)

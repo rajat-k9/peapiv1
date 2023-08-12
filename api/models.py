@@ -192,6 +192,14 @@ class ProductLogHistory(models.Model):
         return self.product.name
     
 
+class StockHistory(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    warehouse = models.CharField(max_length=100, default="home", choices=WAREHOUSE_CHOICES)
+    qty = models.IntegerField(default=0)
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    
+
 class Payment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, blank=True, null=True)

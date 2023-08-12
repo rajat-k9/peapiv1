@@ -157,6 +157,13 @@ class StockSerializer(serializers.ModelSerializer):
     #     return instance
     
 
+class StockHistorySerializer(serializers.ModelSerializer):
+    product_id = serializers.CharField(source='product.id') 
+    product_name = serializers.CharField(source='product.name')
+    class Meta:
+        model = models.StockHistory
+        fields = ("id","product_category","product_id","product_name","warehouse","qty","created_on")
+
 class LoginSerializer(serializers.Serializer):
     """
     This serializer defines two fields for authentication:
