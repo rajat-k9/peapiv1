@@ -40,16 +40,33 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class SubcategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = Subcategory.objects.filter(active=True)
     serializer_class = serializers.SubcategorySerializer
     search_fields = ['name']
     filter_backends = (filters.SearchFilter,)
 
+    def get_queryset(self):
+        queryset = Subcategory.objects.filter(active=True)
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category__id=category)
+        return queryset
+
 
 class BrandViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = Brand.objects.filter(active=True)
     serializer_class = serializers.BrandSerializer
+
+    def get_queryset(self):
+        queryset = Brand.objects.filter(active=True)
+        category = self.request.query_params.get('category')
+        subcategory = self.request.query_params.get('subcategory')
+        q_objects = Q()
+        if category:
+            q_objects.add(Q(subcategory__category=category), Q.AND)
+        if category:
+            q_objects.add(Q(subcategory=subcategory), Q.AND)
+        queryset = queryset.filter(q_objects)
+        return queryset
 
 
 class ItemModelViewSet(viewsets.ModelViewSet):
@@ -694,3 +711,36 @@ class ProductLogHistoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = ProductLogHistory.objects.all()
     serializer_class = serializers.ProductLogHistorySerializer
+
+
+def get_sale(request):
+    if request.method == "GET":
+        queryset = Record.objects.prefetch_related("sale").exclude(sale__isnull=True).values("id","amount","qty")
+        from_date = request.GET.get('from', None)
+        to_date = request.GET.get('to', None)
+        cat = request.GET.get('category',None)
+        subcat = request.GET.get('subcategory',None)
+        brand = request.GET.get('brand',None)
+        te = " 23:59:59"
+        ts = " 00:00:00"
+        q_objects = Q()
+        if from_date is not None:
+            q_objects.add(Q(sale__sale_date__range=[from_date + ts, to_date + te]), Q.AND)
+        if cat:
+            q_objects.add(Q(product__type__item_model__brand__subcategory__category=cat), Q.AND)
+        if subcat:
+            q_objects.add(Q(product__type__item_model__brand__subcategory=subcat), Q.AND)
+        if brand:
+            q_objects.add(Q(product__type__item_model__brand=brand), Q.AND)
+        queryset = queryset.filter(q_objects)
+        obj = dict()
+        amt_total = 0.00
+        item_count = 0
+        for item in queryset:
+            amt_total = amt_total + float(item["amount"])
+            item_count = item_count + int(item["qty"])
+        obj = {"total_amount":'{0:.2f}'.format(amt_total), "total_qty": item_count}
+        return JsonResponse(data=obj, safe=False)
+
+
+

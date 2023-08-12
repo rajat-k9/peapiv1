@@ -31,5 +31,6 @@ urlpatterns = [
     path('printorder/', views.printorder, name='order'),
     path('movestock/', views.move_stock, name="stockmove"),
     path('movetohistory/', views.move_stock_to_history, name="stockmovehistory"),
-    path('checkstock/', views.checkstock, name="checkstock")
+    path('checkstock/', views.checkstock, name="checkstock"),
+    path('saletotal/', views.get_sale, name="sale")
 ]
