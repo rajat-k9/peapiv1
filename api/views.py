@@ -358,17 +358,24 @@ class StockViewSet(viewsets.ModelViewSet):
                     data = [v for v in list(queryset) if v["product__id"] == id[0]]
                     obj = {"product_id":data[0]["product__id"],"product_name":data[0]["product__name"],
                         "product_category":data[0]["product_category"],"selling_price":data[0]["product__selling_price"]}
+                    c = 0
                     for i in data:
                         if i["warehouse"] == "home":
-                            obj["home"] = i["qty"]
+                            obj["home"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["home"])
                         elif i["warehouse"] == "shop":
-                            obj["shop"] = i["qty"]
+                            obj["shop"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["shop"])
                         elif i["warehouse"] == "po_godown":
-                            obj["po_godown"] = i["qty"]
+                            obj["po_godown"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["po_godown"])
                         elif i["warehouse"] == "colony":
-                            obj["colony"] = i["qty"]
+                            obj["colony"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["colony"])
                         elif i["warehouse"] == "hameerpur":
-                            obj["hameerpur"] = i["qty"]
+                            obj["hameerpur"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["hameerpur"])
+                    obj["total"] = c
 
                     result.append(obj)
             return JsonResponse(data=result, safe=False)
@@ -413,16 +420,23 @@ class StockHistoryViewSet(viewsets.ModelViewSet):
                         "product_category":data[0]["product_category"],"selling_price":data[0]["product__selling_price"],
                         "created_on":data[0]["created_on"]}
                     for i in data:
+                        c = 0
                         if i["warehouse"] == "home":
-                            obj["home"] = i["qty"]
+                            obj["home"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["home"])
                         elif i["warehouse"] == "shop":
-                            obj["shop"] = i["qty"]
+                            obj["shop"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["shop"])
                         elif i["warehouse"] == "po_godown":
-                            obj["po_godown"] = i["qty"]
+                            obj["po_godown"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["po_godown"])
                         elif i["warehouse"] == "colony":
-                            obj["colony"] = i["qty"]
+                            obj["colony"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["colony"])
                         elif i["warehouse"] == "hameerpur":
-                            obj["hameerpur"] = i["qty"]
+                            obj["hameerpur"] = i["qty"] if i["qty"] else 0
+                            c = c+ int(obj["hameerpur"])
+                        obj["total"] = c
 
                     result.append(obj)
             return JsonResponse(data=result, safe=False)
@@ -589,7 +603,7 @@ def dashboard_income_expense(request):
     currentYear = datetime.now().year
     util = DateUtil()
     util.numberOfDays(currentYear,currentMonth)
-    payments = Payment.objects.filter(created_on__year=currentYear, created_on__month=currentMonth).values('created_on__date').annotate(amt=Sum('amount'))
+    payments = Payment.objects.filter(created_on__year=currentYear, created_on__month=currentMonth, type="expense").values('created_on__date').annotate(amt=Sum('amount'))
     sales = Record.objects.filter(sale__sale_date__year=currentYear, sale__sale_date__month=currentMonth).values('sale__sale_date__date').annotate(amt=Sum('amount'))
     if sales.count() > payments.count():
         for item in sales:
