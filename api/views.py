@@ -474,8 +474,11 @@ class ProductLogViewSet(viewsets.ModelViewSet):
             # queryset = ProductLog.objects.all()
             from_date = request.GET.get('from', None)
             to_date = request.GET.get('to', None)
+            product = request.GET.get('product',None)
             if from_date is not None:
                 self.queryset = self.queryset.filter(created_on__date__range=[from_date, to_date])
+            if product:
+                self.queryset = self.queryset.filter(product__id=product)
             serializer_class = serializers.ProductLogSerializer(self.queryset, many=True)
             return Response(serializer_class.data)
         
