@@ -356,7 +356,6 @@ class StockViewSet(viewsets.ModelViewSet):
             category = request.GET.get('category', None)
             subcategory = request.GET.get('subcategory', None)
             brand = request.GET.get('brand', None)
-            # item_model = request.GET.get('model', None)
             filter = Q()
             if category:
                 filter.add(Q(product_category=category), Q.AND)
@@ -414,7 +413,7 @@ class StockHistoryViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         if request.method == 'GET':
-            stock_prod_id = StockHistory.objects.order_by().values_list('product__id').distinct()
+            # stock_prod_id = StockHistory.objects.order_by().values_list('product__id','created_on').distinct()
             queryset = StockHistory.objects.select_related("product").annotate(product_category=F(
                 "product__type__item_model__brand__subcategory__category"),product_subcategory=F(
                 "product__type__item_model__brand__subcategory"),product_brand=F(
@@ -422,9 +421,21 @@ class StockHistoryViewSet(viewsets.ModelViewSet):
                 ,"product_category","product_subcategory","product_brand","product_model","product__name","qty",
                 "warehouse","product__selling_price","created_on").order_by("product__name")
             category = request.GET.get('category', None)
+            category = request.GET.get('category', None)
+            subcategory = request.GET.get('subcategory', None)
+            brand = request.GET.get('brand', None)
+            entry_date = request.GET.get('created_on', None)
+            filter = Q()
             if category:
-                # filter = Q(product_category=category)
-                queryset = queryset.filter(product_category=category)
+                filter.add(Q(product_category=category), Q.AND)
+            if subcategory:
+                filter.add(Q(product_subcategory=subcategory), Q.AND)
+            if brand:
+                filter.add(Q(product_brand=brand), Q.AND)
+            queryset = queryset.filter(filter)
+            if entry_date:
+                filter.add(Q(created_on__date=entry_date), Q.AND)
+            queryset = queryset.filter(filter)
             stock_prod_id = queryset.values_list('product__id').distinct()
             result = []
             if queryset:
