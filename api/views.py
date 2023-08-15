@@ -354,20 +354,17 @@ class StockViewSet(viewsets.ModelViewSet):
                 ,"product_category","product_subcategory","product_brand","product_model","product__name","qty",
                 "warehouse","product__selling_price").order_by("product__name")
             category = request.GET.get('category', None)
-            # subcategory = request.GET.get('subcategory', None)
-            # brand = request.GET.get('brand', None)
+            subcategory = request.GET.get('subcategory', None)
+            brand = request.GET.get('brand', None)
             # item_model = request.GET.get('model', None)
-            # filter = None
+            filter = Q()
             if category:
-                # filter = Q(product_category=category)
-                queryset = queryset.filter(product_category=category)
-            # if subcategory:
-            #     filter = filter & Q(product_subcategory=subcategory)
-            # if brand:
-            #     filter = filter & Q(product_brand=brand)
-            # if item_model:
-            #     filter = filter & Q(product_model=item_model)
-            # queryset = queryset.filter(filter)
+                filter.add(Q(product_category=category), Q.AND)
+            if subcategory:
+                filter.add(Q(product_subcategory=subcategory), Q.AND)
+            if brand:
+                filter.add(Q(product_brand=brand), Q.AND)
+            queryset = queryset.filter(filter)
             stock_prod_id = queryset.values_list('product__id').distinct()
             result = []
             if queryset:
