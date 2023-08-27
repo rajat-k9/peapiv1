@@ -209,6 +209,7 @@ class Payment(models.Model):
     type = models.CharField(max_length=50, choices = PAYMENT_TYPE_CHOICES ,default="income")
     mode = models.CharField(max_length=50, choices = PAYMENT_MODE_CHOICES ,default="cash")
     remarks = models.TextField(default="",null=True,blank=True)
+    payment_date = models.DateTimeField(blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     due_date = models.DateTimeField(blank=True, null=True)

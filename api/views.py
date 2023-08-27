@@ -21,6 +21,8 @@ from django.db.models import Sum,F,Q
 import time
 import json
 from django.db.models.functions import Lower
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
@@ -578,8 +580,29 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     search_fields = ['name']
     filter_backends = (filters.SearchFilter,)
-    queryset = Product.objects.select_related('type','type__item_model','type__item_model__brand','type__item_model__brand__subcategory','type__item_model__brand__subcategory__category')
+    queryset = Product.objects.select_related('type','type__item_model','type__item_model__brand',
+                                              'type__item_model__brand__subcategory',
+                                              'type__item_model__brand__subcategory__category')
     serializer_class = serializers.ProductSerializer
+
+    @method_decorator(cache_page(60*60*5))
+    def list(self, request):
+        category = self.request.query_params.get('category',None)
+        subcategory = self.request.query_params.get('subcategory',None)
+        brand = self.request.query_params.get('brand',None)
+        model = self.request.query_params.get('model',None)
+        q_objects = Q()
+        if category:
+            q_objects.add(Q(type__item_model__brand__subcategory__category__id=category))
+        if subcategory:
+            q_objects.add(Q(type__item_model__brand__subcategory__id=subcategory))
+        if brand:
+            q_objects.add(Q(type__item_model__brand__id=brand))
+        if model:
+            q_objects.add(Q(type__item_model__id=model))
+        self.queryset = self.queryset.filter(q_objects)
+        serializer_class = serializers.ProductSerializer(self.queryset,many=True)
+        return Response(serializer_class.data)
     
 
 class PaymentViewSet(viewsets.ModelViewSet):

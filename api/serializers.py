@@ -65,7 +65,7 @@ class VendorSerializer(serializers.ModelSerializer):
                 bal = bal + float(i[0])
             else:
                 bal = bal - float(i[0])
-        return bal
+        return '{0:.2f}'.format(bal)
 
 
 class SaleOrderSerializer(serializers.ModelSerializer):
@@ -240,7 +240,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = models.Payment
         fields = ['id','user_name',"user_id","name","mobile", 'amount', 'type', 
                   'created_on', 'due_date', 'remarks', 'due_date_history', 'vendor_name',
-                    'vendor_id', 'vendor_contact']
+                    'vendor_id', 'vendor_contact','payment_date']
 
     def get_user_name(self, obj):
        return obj.user.username
