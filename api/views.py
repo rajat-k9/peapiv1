@@ -587,6 +587,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     @method_decorator(cache_page(60*60*5))
     def list(self, request):
+        self.queryset = self.filter_queryset(self.queryset)
         category = self.request.query_params.get('category',None)
         subcategory = self.request.query_params.get('subcategory',None)
         brand = self.request.query_params.get('brand',None)
