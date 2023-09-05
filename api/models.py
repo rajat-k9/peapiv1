@@ -26,29 +26,34 @@ class Vendor(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=80, unique=True)
+    code = models.CharField(max_length=4,null=True,blank=True)
     active = models.BooleanField(default=True)
 
 
 class Subcategory(models.Model):
     name = models.CharField(max_length=150)
+    code = models.CharField(max_length=4,null=True,blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
 
 class Brand(models.Model):
     name = models.CharField(max_length=150)
+    code = models.CharField(max_length=4,null=True,blank=True)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
 
 class ItemModel(models.Model):
     name = models.CharField(max_length=150)
+    code = models.CharField(max_length=4,null=True,blank=True)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
 
 class Type(models.Model):
     name = models.CharField(max_length=150)
+    code = models.CharField(max_length=4,null=True,blank=True)
     item_model = models.ForeignKey(ItemModel, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 

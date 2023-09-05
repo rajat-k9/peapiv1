@@ -36,8 +36,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = Category.objects.filter(active=True)
+    queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
+    search_fields = ['name']
+    filter_backends = (filters.SearchFilter,)
 
 
 class SubcategoryViewSet(viewsets.ModelViewSet):
@@ -47,34 +49,68 @@ class SubcategoryViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
 
     def get_queryset(self):
-        queryset = Subcategory.objects.filter(active=True)
-        category = self.request.query_params.get('category')
+        queryset = Subcategory.objects.all()
+        category = self.request.query_params.get('category', None)
+        active = self.request.query_params.get('active', None)
+        q_objects = Q()
         if category:
             queryset = queryset.filter(category__id=category)
+        if active:
+            q_objects.add(Q(active=active), Q.AND)
         return queryset
 
 
 class BrandViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.BrandSerializer
+    search_fields = ['name']
+    filter_backends = (filters.SearchFilter,)
 
     def get_queryset(self):
-        queryset = Brand.objects.filter(active=True)
-        category = self.request.query_params.get('category')
-        subcategory = self.request.query_params.get('subcategory')
+        queryset = Brand.objects.all()
+        category = self.request.query_params.get('category', None)
+        subcategory = self.request.query_params.get('subcategory', None)
+        active = self.request.query_params.get('active', None)
         q_objects = Q()
         if category:
             q_objects.add(Q(subcategory__category=category), Q.AND)
-        if category:
+        if subcategory:
             q_objects.add(Q(subcategory=subcategory), Q.AND)
+        if active:
+            q_objects.add(Q(active=active), Q.AND)
         queryset = queryset.filter(q_objects)
         return queryset
 
 
 class ItemModelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = ItemModel.objects.filter(active=True)
     serializer_class = serializers.ItemModelSerializer
+    search_fields = ['name']
+    filter_backends = (filters.SearchFilter,)
+
+    def get_queryset(self):
+        queryset = ItemModel.objects.all()
+        category = self.request.query_params.get('category', None)
+        subcategory = self.request.query_params.get('subcategory', None)
+        brand = self.request.query_params.get('brand', None)
+        active = self.request.query_params.get('active', None)
+        q_objects = Q()
+        if category:
+            q_objects.add(Q(subcategory__category=category), Q.AND)
+        if subcategory:
+            q_objects.add(Q(subcategory=subcategory), Q.AND)
+        if brand:
+            q_objects.add(Q(brand=brand), Q.AND)
+        if active:
+            q_objects.add(Q(active=active), Q.AND)
+        queryset = queryset.filter(q_objects)
+        return queryset
+
+
+class TypeViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = Type.objects.all()
+    serializer_class = serializers.TypeSerializer
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -354,7 +390,7 @@ class StockViewSet(viewsets.ModelViewSet):
                 "product__type__item_model__brand__subcategory"),product_brand=F(
                 "product__type__item_model__brand"),product_model=F("product__type__item_model")).values("product__id"
                 ,"product_category","product_subcategory","product_brand","product_model","product__name","qty",
-                "warehouse","product__selling_price").order_by("product__name")
+                "warehouse","product__selling_price","id").order_by("product__name")
             category = request.GET.get('category', None)
             subcategory = request.GET.get('subcategory', None)
             brand = request.GET.get('brand', None)
@@ -371,7 +407,7 @@ class StockViewSet(viewsets.ModelViewSet):
             if queryset:
                 for id in stock_prod_id:
                     data = [v for v in list(queryset) if v["product__id"] == id[0]]
-                    obj = {"product_id":data[0]["product__id"],"product_name":data[0]["product__name"],
+                    obj = {"id": data[0]["id"], "product_id":data[0]["product__id"],"product_name":data[0]["product__name"],
                         "product_category":data[0]["product_category"],"selling_price":data[0]["product__selling_price"]}
                     c = 0
                     for i in data:
@@ -395,11 +431,25 @@ class StockViewSet(viewsets.ModelViewSet):
                     result.append(obj)
             return JsonResponse(data=result, safe=False)
         
-    def retrieve(self, request, pk=None):
-        stock_obj = Stock.objects.get(product__id=pk,warehouse="shop")
-        obj = {"product_id":stock_obj.product_id,"shop":stock_obj.qty}
-        
-        return  JsonResponse(data=obj, safe=False)
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        stock_obj = Stock.objects.filter(product=pk)
+        stocks = []
+        for item in stock_obj:
+            stocks.append({"product_id":item.product_id,"warehouse":item.warehouse, "qty":item.qty})
+        return JsonResponse(data=stocks, safe=False)
+
+    def update(self, request, pk=None):
+        product_obj = Product.objects.get(pk=pk)
+        body = self.request.data
+        if "shop" in body:
+            Stock.objects.update_or_create(product=product_obj, warehouse="shop", defaults={'qty': body["shop"]})
+        if "home" in body:
+            Stock.objects.update_or_create(product=product_obj, warehouse="home", defaults={'qty': body["home"]})
+        if "po_godown" in body:
+            Stock.objects.update_or_create(product=product_obj, warehouse="po_godown", defaults={'qty': body["po_godown"]})
+        if "colony" in body:
+            Stock.objects.update_or_create(product=product_obj, warehouse="colony", defaults={'qty': body["colony"]})
+        return JsonResponse(data={"status":"OK"}, safe=False)
         
 
 def move_stock_to_history(request):
@@ -605,6 +655,17 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer_class = serializers.ProductSerializer(self.queryset,many=True)
         return Response(serializer_class.data)
     
+    def create(self, request):
+        # user = User.objects.get(pk=request.data["user_id"])
+        sku = request.data[0].get('sku',None)
+        name = request.data[0].get('name',None)
+        opening_stock = request.data[0].get('opening_stock',0)
+        type_id = request.data[0].get('type_id',None)
+        prod = Product.objects.create(type=Type.objects.get(pk=type_id),
+                                      opening_stock=opening_stock,sku=sku,name=name)
+        return Response(data=prod, status=status.HTTP_201_CREATED)
+
+    
 
 class PaymentViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -654,37 +715,26 @@ def dashboard_income_expense(request):
     currentMonth = datetime.now().month
     currentYear = datetime.now().year
     util = DateUtil()
-    util.numberOfDays(currentYear,currentMonth)
+    daycount = util.numberOfDays(currentYear,currentMonth)
     payments = Payment.objects.filter(created_on__year=currentYear, created_on__month=currentMonth, type="expense").values('created_on__date').annotate(amt=Sum('amount'))
     sales = Record.objects.filter(sale__sale_date__year=currentYear, sale__sale_date__month=currentMonth).values('sale__sale_date__date').annotate(amt=Sum('amount'))
-    if sales.count() > payments.count():
-        for item in sales:
-            payment = payments.filter(created_on__date=item['sale__sale_date__date'])
-            if payment:
-                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(payment[0]["amt"])),"income":'{0:.2f}'.format(float(item['amt']))})
+    for i in range(1,daycount+1):
+        expense = 0.00
+        income = 0.00
+        currentDate=str(currentYear)+"-"+str(currentMonth)+"-"+str(i)
+        payment = payments.filter(payment_date__date=currentDate, type="expense")
+        sale = sales.filter(sale__sale_date__date=currentDate)
+        income_payment = payments.filter(payment_date__date=currentDate, type="income")
+        if payment:
+            expense = '{0:.2f}'.format(float(payment[0]["amt"]))
+        if sale:
+            if income_payment:
+                income = '{0:.2f}'.format(float(sale[0]['amt'])+float(income_payment[0]["amt"]))
             else:
-                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float("0")),"income":'{0:.2f}'.format(float(item['amt']))})
-    elif sales.count() < payments.count():
-        for item in payments:
-            sale = sales.filter(sale__sale_date__date=item['created_on__date'])
-            if sale:
-                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(item["amt"])),"income":'{0:.2f}'.format(float(sale[0]['amt']))})
-            else:
-                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(item["amt"])),"income":'{0:.2f}'.format(float("0"))})
-    else:
-        for item in payments:
-            sale = sales.filter(sale__sale_date__date=item['created_on__date'])
-            if sale:
-                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(item["amt"])),"income":'{0:.2f}'.format(float(sale[0]['amt']))})
-            else:
-                result.append({"date":item['created_on__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(item["amt"])),"income":'{0:.2f}'.format(float("0"))})
-        for item in sales:
-            payment = payments.filter(created_on__date=item['sale__sale_date__date'])
-            if payment:
-                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float(payment[0]["amt"])),"income":'{0:.2f}'.format(float(item['amt']))})
-            else:
-                result.append({"date":item['sale__sale_date__date'].strftime("%Y-%m-%d"),"expense":'{0:.2f}'.format(float("0")),"income":'{0:.2f}'.format(float(item['amt']))})
-    sales_in_month = Record.objects.filter(sale__sale_date__year=currentYear, sale__sale_date__month=currentMonth).values("product__type__item_model__brand__subcategory__category__name").annotate(amt=Sum('amount'))
+                income = '{0:.2f}'.format(float(sale[0]['amt']))
+        result.append({"date":currentDate,"expense":expense,"income":income})
+    sales_in_month = Record.objects.filter(sale__sale_date__year=currentYear, sale__sale_date__month=
+                                           currentMonth).values("product__type__item_model__brand__subcategory__category__name").annotate(amt=Sum('amount'))
     sale_records = []
     for item in sales_in_month:
         record = {"category":item["product__type__item_model__brand__subcategory__category__name"],"amount":'{0:.2f}'.format(float(item["amt"]))}

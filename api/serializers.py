@@ -13,25 +13,40 @@ class UserSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'code', 'active']
 
 
 class SubcategorySerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name',read_only=True)
     class Meta:
         model = models.Subcategory
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'code', 'active', 'category', 'category_name']
 
 
 class BrandSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='subcategory.category.name',read_only=True)
+    category = serializers.CharField(source='subcategory.category.id',read_only=True)
+    subcategory_name = serializers.CharField(source='subcategory.name',read_only=True)
     class Meta:
         model = models.Brand
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'code', 'active','category','category_name','subcategory','subcategory_name']
 
 
 class ItemModelSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='brand.subcategory.category.name',read_only=True)
+    category = serializers.CharField(source='brand.subcategory.category.id',read_only=True)
+    subcategory_name = serializers.CharField(source='brand.subcategory.name',read_only=True)
+    subcategory = serializers.CharField(source='brand.subcategory.id',read_only=True)
+    brand_name = serializers.CharField(source='brand.name',read_only=True)
     class Meta:
         model = models.ItemModel
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'code', 'active','category','category_name','subcategory','subcategory_name','brand_name','brand']
+
+
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Type
+        fields = ['id', 'name', 'code', 'active']
 
 
 class CustomerSerializer(serializers.ModelSerializer):
