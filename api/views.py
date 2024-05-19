@@ -176,10 +176,13 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
             "remarks").order_by("-purchase__purchase_date")
             from_date = request.GET.get('from', None)
             to_date = request.GET.get('to', None)
+            prod_id = request.GET.get('prod_id', None)
             te = " 23:59:59"
             ts = " 00:00:00"
             if from_date is not None:
-                queryset = queryset.filter(purchase__invoice_date__range=[from_date + ts, to_date + te])
+                queryset = queryset.filter(purchase__invoice_date__range=[from_date+ts, to_date+te])
+            if prod_id is not None:
+                queryset = queryset.filter(product__id=prod_id)
             return JsonResponse(data=list(queryset), safe=False)
         
     def create(self, request):
@@ -635,7 +638,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                                               'type__item_model__brand__subcategory__category')
     serializer_class = serializers.ProductSerializer
 
-    @method_decorator(cache_page(60*60*5))
+    @method_decorator(cache_page(60*60*1))
     def list(self, request):
         self.queryset = self.filter_queryset(self.queryset)
         category = self.request.query_params.get('category',None)
@@ -681,7 +684,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         for i in self.queryset:
             print(str(i))
         if from_date is not None:
-            self.queryset = self.queryset.filter(created_on__range=[from_date + ts, to_date + te])
+            self.queryset = self.queryset.filter(payment_date__range=[from_date + ts, to_date + te])
         serializer = serializers.PaymentSerializer(self.queryset, many=True)
         return JsonResponse(data=serializer.data, safe=False)
 
@@ -716,7 +719,7 @@ def dashboard_income_expense(request):
     currentYear = datetime.now().year
     util = DateUtil()
     daycount = util.numberOfDays(currentYear,currentMonth)
-    payments = Payment.objects.filter(created_on__year=currentYear, created_on__month=currentMonth, type="expense").values('created_on__date').annotate(amt=Sum('amount'))
+    payments = Payment.objects.filter(payment_date__year=currentYear, payment_date__month=currentMonth).values('payment_date__date','type').annotate(amt=Sum('amount'))
     sales = Record.objects.filter(sale__sale_date__year=currentYear, sale__sale_date__month=currentMonth).values('sale__sale_date__date').annotate(amt=Sum('amount'))
     for i in range(1,daycount+1):
         expense = 0.00
